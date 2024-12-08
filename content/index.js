@@ -207,7 +207,8 @@ function populateDatabase(xmlDoc) {
 			type: "mms",
 			read: 1,
 			receivers: receivers,
-			phoneNumber: !sent ? toArray[0].address : undefined,
+			sender: sender,
+			phoneNumber: sent ? sender : toArray[0].address,
 			delivery: sent ? "sent" : "received",
 			deliveryStatus: "not-applicable",
 			timestamp: Number(mms.getAttribute("date")),
@@ -220,7 +221,7 @@ function populateDatabase(xmlDoc) {
 				to: toArray,
 				cc: ccArray,
 				bcc: bccArray,
-				subject: mms.getAttribute("sub")
+				subject: mms.getAttribute("sub") === "NoSubject" || mms.getAttribute("sub") === "null" ? undefined : mms.getAttribute("sub")
 			},
 			parts: parts
 		}
