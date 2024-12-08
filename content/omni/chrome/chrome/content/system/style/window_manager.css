@@ -1,0 +1,25 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/* <gaia-wm> styling */
+
+gaia-wm > main {
+  height: 100%;
+  /* Each child element is as wide as main in a single row */
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 100%;
+  grid-template-rows: 1fr;
+
+  /* This element will overflow scroll and scroll-snap */
+  overflow-x: scroll;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+}
+
+gaia-wm > main > web-view {
+  scroll-snap-align: start;
+  height: 100%;
+  overflow-y: auto;
+}

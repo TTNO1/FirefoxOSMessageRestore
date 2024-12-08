@@ -1,0 +1,1 @@
+"use strict";document.addEventListener("dialogaccept",onResetProfileAccepted);function onResetProfileAccepted(){let retVals=window.arguments[0];retVals.reset=true;}

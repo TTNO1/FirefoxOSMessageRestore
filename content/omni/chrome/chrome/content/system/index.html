@@ -1,0 +1,43 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf8" />
+    <title>System UI</title>
+
+    <link rel="stylesheet" href="style/index.css" type="text/css" />
+
+    <!-- embedding API provider -->
+    <script src="chrome://b2g/content/embedding/web-embedder.js"></script>
+
+    <!-- Our embedder implementation-->
+    <script src="js/embedding.js" type="module"></script>
+
+    <script src="js/bootstrap.js" type="module"></script>
+    <script src="js/statusbar.js" type="module"></script>
+    <script src="js/window_manager.js" type="module"></script>
+    <script src="js/navigation.js" type="module"></script>
+    <script src="js/keyboard.js" type="module"></script>
+  </head>
+  <body>
+    <gaia-statusbar id="statusbar"></gaia-statusbar>
+    <gaia-wm id="wm"></gaia-wm>
+    <div id="navigation">
+      <button id="action-go-back">&lt;&lt;</button>
+      <button id="action-go-forward">&gt;&gt;</button>
+      <button id="action-close">Close</button>
+      <button id="action-home">Home</button>
+    </div>
+    <web-view
+      class="offscreen"
+      id="keyboard"
+      ignoreuserfocus="true"
+      remote="true"
+      mozpasspointerevents="true"
+      transparent="true"
+      src="chrome://b2g/content/keyboard/index.html"
+    ></web-view>
+  </body>
+</html>

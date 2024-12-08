@@ -1,0 +1,103 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      #vkb {
+        -moz-user-focus: ignore;
+        -moz-user-select: none;
+        font-family: sans-serif;
+        margin-top: 1em;
+
+        position: absolute;
+        bottom: 60px;
+      }
+
+      #vkb div {
+        display: flex;
+      }
+
+      #vkb span {
+        font-size: larger;
+        border: 1px solid gray;
+        width: 2em;
+        height: 2em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #vkb span:active {
+        background-color: gray;
+      }
+
+      #popup {
+        width: 100px;
+
+        background: yellow;
+        position: absolute;
+        bottom: 190px;
+        left: 100px;
+      }
+
+      #popup.oneline {
+        word-wrap: nowrap;
+      }
+
+    </style>
+    <script>
+      function addLine(container, line) {
+        let row = document.createElement("div");
+
+        for (let char of line) {
+          let box = document.createElement("span");
+          box.textContent = char;
+          row.appendChild(box);
+        }
+
+        container.appendChild(row);
+      }
+
+      document.addEventListener(
+        "DOMContentLoaded",
+        () => {
+          let vkb = document.getElementById("vkb");
+          addLine(vkb, "qwertyuiop");
+          addLine(vkb, "asdfghjkl;");
+          addLine(vkb, "zxcvbnm,./");
+
+          vkb.addEventListener("click", event => {
+            let key = event.target.textContent;
+            console.log(`Event 'click' on ${key}`);
+            let ime = navigator.b2g.inputMethod;
+            ime
+              .setComposition(key)
+              .then(ime.endComposition(key))
+              .then(
+                () => {
+                  console.log(`IME adding ${key} ok`);
+                },
+                () => {
+                  console.log(`IME error adding ${key}`);
+                }
+              );
+          });
+
+          let popup = document.getElementById("popup");
+          popup.addEventListener("click", event => {
+            popup.classList.toggle('oneline');
+          });
+        },
+        { once: true }
+      );
+    </script>
+  </head>
+  <body>
+    <div id="vkb"></div>
+    <div id="popup">Keyboard popup content, test for mozpasspointerevents</div>
+  </body>
+</html>

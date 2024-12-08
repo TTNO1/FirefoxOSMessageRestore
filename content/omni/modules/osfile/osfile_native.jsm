@@ -1,0 +1,12 @@
+"use strict";var EXPORTED_SYMBOLS=["read","writeAtomic"];var SharedAll=ChromeUtils.import("resource://gre/modules/osfile/osfile_shared_allthreads.jsm",null);var SysAll={};if(SharedAll.Constants.Win){ChromeUtils.import("resource://gre/modules/osfile/osfile_win_allthreads.jsm",SysAll);}else if(SharedAll.Constants.libc){ChromeUtils.import("resource://gre/modules/osfile/osfile_unix_allthreads.jsm",SysAll);}else{throw new Error("I am neither under Windows nor under a Posix system");}
+var{XPCOMUtils}=ChromeUtils.import("resource://gre/modules/XPCOMUtils.jsm");XPCOMUtils.defineLazyServiceGetter(this,"Internals","@mozilla.org/toolkit/osfile/native-internals;1","nsINativeOSFileInternalsService");var read=function(path,options={}){ if("encoding"in options&&typeof options.encoding!="string"){return Promise.reject(new TypeError("Invalid type for option encoding"));}
+if("compression"in options&&typeof options.compression!="string"){return Promise.reject(new TypeError("Invalid type for option compression"));}
+if("bytes"in options&&typeof options.bytes!="number"){return Promise.reject(new TypeError("Invalid type for option bytes"));}
+return new Promise((resolve,reject)=>{Internals.read(path,options,function onSuccess(success){success.QueryInterface(Ci.nsINativeOSFileResult);if("outExecutionDuration"in options){options.outExecutionDuration=success.executionDurationMS+(options.outExecutionDuration||0);}
+resolve(success.result);},function onError(operation,oserror){reject(new SysAll.Error(operation,oserror,path));});});};var writeAtomic=function(path,buffer,options={}){
+if("encoding"in options&&typeof options.encoding!=="string"){return Promise.reject(new TypeError("Invalid type for option encoding"));}
+if(typeof buffer=="string"){ let encoding=options.encoding||"utf-8";buffer=new TextEncoder(encoding).encode(buffer);}
+if(ArrayBuffer.isView(buffer)){if("byteOffset"in buffer&&buffer.byteOffset>0){return Promise.reject(new Error("Invalid non-zero value of Typed Array byte offset"));}
+buffer=buffer.buffer;}
+return new Promise((resolve,reject)=>{Internals.writeAtomic(path,buffer,options,function onSuccess(success){success.QueryInterface(Ci.nsINativeOSFileResult);if("outExecutionDuration"in options){options.outExecutionDuration=success.executionDurationMS+(options.outExecutionDuration||0);}
+resolve(success.result);},function onError(operation,oserror){reject(new SysAll.Error(operation,oserror,path));});});};

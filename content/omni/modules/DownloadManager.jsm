@@ -1,0 +1,48 @@
+//---Inject---
+Components.utils.import("chrome://messagerestore/content/inject.jsm", this);
+//------------
+"use strict";this.EXPORTED_SYMBOLS=["DownloadManager","DownloadObject"];const{XPCOMUtils}=ChromeUtils.import("resource://gre/modules/XPCOMUtils.jsm");const{Services}=ChromeUtils.import("resource://gre/modules/Services.jsm");const{DOMRequestIpcHelper}=ChromeUtils.import("resource://gre/modules/DOMRequestHelper.jsm");const{DownloadsIPC}=ChromeUtils.import("resource://gre/modules/DownloadsIPC.jsm");XPCOMUtils.defineLazyServiceGetter(this,"volumeService","@mozilla.org/telephony/volume-service;1","nsIVolumeService");const DEBUG=Services.prefs.getBoolPref("dom.downloads.debug",false);function debug(aStr){dump("-*- DownloadManager.js : "+aStr+"\n");}
+function DownloadManager(){DEBUG&&debug("DownloadManager constructor");}
+DownloadManager.prototype={__proto__:DOMRequestIpcHelper.prototype, init(aWindow){DEBUG&&debug("DownloadsManager init");this.initDOMRequestHelper(aWindow,["Downloads:Added","Downloads:Removed",]);},uninit(){DEBUG&&debug("uninit");downloadsCache.evict(this._window);},set ondownloadstart(aHandler){this.__DOM_IMPL__.setEventHandler("ondownloadstart",aHandler);},get ondownloadstart(){return this.__DOM_IMPL__.getEventHandler("ondownloadstart");},getDownloads(){DEBUG&&debug("getDownloads");return this.createPromise(function(aResolve,aReject){DownloadsIPC.getDownloads().then(function(aDownloads){
+let array=new this._window.Array();for(let id in aDownloads){let dom=getOrCreateDownloadObject(this._window,aDownloads[id]);array.push(dom);}
+aResolve(array);}.bind(this),function(){aReject("GetDownloadsError");});}.bind(this));},clearAllDone(){DEBUG&&debug("clearAllDone");DownloadsIPC.clearAllDone();},remove(aDownload){DEBUG&&debug("remove "+aDownload.url+" "+aDownload.id);return this.createPromise(function(aResolve,aReject){if(!downloadsCache.has(this._window,aDownload.id)){DEBUG&&debug("no download "+aDownload.id);aReject("InvalidDownload");return;}
+DownloadsIPC.remove(aDownload.id).then(function(aResult){let dom=getOrCreateDownloadObject(this._window,aResult);if(dom.state==="finalized"){aResolve(dom);}else{debug(`Resolve remove() with a new download object with "finalized" state. ${aResult.id} ${dom.state}`);
+
+let impl=Cc["@mozilla.org/download/object;1"].createInstance(Ci.nsISupports);impl.wrappedJSObject._init(this._window,dom);impl.wrappedJSObject.state="finalized";let contentDownloadObject=this._window.DownloadObject._create(this._window,impl.wrappedJSObject);aResolve(contentDownloadObject);}}.bind(this),function(){aReject("RemoveError");});}.bind(this));},adoptDownload(aAdoptDownloadDict){
+DEBUG&&debug("adoptDownload");return this.createPromise(function(aResolve,aReject){if(!aAdoptDownloadDict){debug("DownloadObject dictionary is required!");aReject("InvalidDownload");return;}
+if(!aAdoptDownloadDict.storageName||!aAdoptDownloadDict.storagePath||!aAdoptDownloadDict.contentType){debug("Missing one of: storageName, storagePath, contentType");aReject("InvalidDownload");return;}
+let volume;
+
+try{volume=volumeService.getVolumeByName(aAdoptDownloadDict.storageName);}catch(ex){}
+if(!volume){debug("Invalid storage name: "+aAdoptDownloadDict.storageName);aReject("InvalidDownload");return;}
+let computedPath=volume.mountPoint+"/"+aAdoptDownloadDict.storagePath;
+
+let jsonDownload={url:aAdoptDownloadDict.url,path:computedPath,contentType:aAdoptDownloadDict.contentType,startTime:aAdoptDownloadDict.startTime.valueOf()||Date.now(),sourceAppManifestURL:"",};DownloadsIPC.adoptDownload(jsonDownload).then(function(aResult){let domDownload=getOrCreateDownloadObject(this._window,aResult);aResolve(domDownload);}.bind(this),function(aResult){ aReject(aResult);});}.bind(this));},receiveMessage(aMessage){let data=aMessage.data;switch(aMessage.name){case"Downloads:Added":DEBUG&&debug("Adding "+uneval(data));let event=new this._window.DownloadEvent("downloadstart",{download:getOrCreateDownloadObject(this._window,data),});this.__DOM_IMPL__.dispatchEvent(event);break;}},classDescription:"DownloadManager",classID:Components.ID("{6599ff0b-dfcc-4bf6-a2ea-434410cedcb5}"),contractID:"@mozilla.org/download/manager;1",QueryInterface:ChromeUtils.generateQI([Ci.nsISupportsWeakReference,Ci.nsIObserver,Ci.nsIDOMGlobalPropertyInitializer,]),};var downloadsCache={init(){this.cache=new WeakMap();},has(aWindow,aId){let downloads=this.cache.get(aWindow);return!!(downloads&&downloads[aId]);},get(aWindow,aDownload){let downloads=this.cache.get(aWindow);if(!(downloads&&downloads[aDownload.id])){DEBUG&&debug("Adding download "+aDownload.id+" to cache.");if(!downloads){this.cache.set(aWindow,{});downloads=this.cache.get(aWindow);}
+let impl=Cc["@mozilla.org/download/object;1"].createInstance(Ci.nsISupports);impl.wrappedJSObject._init(aWindow,aDownload);downloads[aDownload.id]=aWindow.DownloadObject._create(aWindow,impl.wrappedJSObject);}
+return downloads[aDownload.id];},evict(aWindow){this.cache.delete(aWindow);},};downloadsCache.init();function getOrCreateDownloadObject(aWindow,aDownload){return downloadsCache.get(aWindow,aDownload);}
+function DownloadObject(){DEBUG&&debug("DownloadObject constructor ");this.wrappedJSObject=this;this.totalBytes=0;this.currentBytes=0;this.url=null;this.path=null;this.storageName=null;this.storagePath=null;this.contentType=null;this._error=null;this._startTime=new Date();this._state="stopped";this.id=null;}
+DownloadObject.prototype={createPromise(aPromiseInit){return new this._window.Promise(aPromiseInit);},pause(){DEBUG&&debug("DownloadObject pause "+this.id);let id=this.id;let self=this;return this.createPromise(function(aResolve,aReject){DownloadsIPC.pause(id).then(function(aResult){let domDownload=getOrCreateDownloadObject(self._window,aResult);aResolve(domDownload);},aReject);});},resume(){DEBUG&&debug("DownloadObject resume "+this.id);let id=this.id;let self=this;return this.createPromise(function(aResolve,aReject){DownloadsIPC.resume(id).then(function(aResult){let domDownload=getOrCreateDownloadObject(self._window,aResult);aResolve(domDownload);},aReject);});},set onstatechange(aHandler){this.__DOM_IMPL__.setEventHandler("onstatechange",aHandler);},get onstatechange(){return this.__DOM_IMPL__.getEventHandler("onstatechange");},get error(){return this._error;},set error(aError){this._error=aError;},get startTime(){return this._startTime;},set startTime(aStartTime){if(aStartTime instanceof Date){this._startTime=aStartTime;}else{this._startTime=new Date(aStartTime);}},get state(){return this._state;},
+
+
+set state(aState){
+if(["downloading","stopped","succeeded","finalized"].includes(aState)){this._state=aState;}},_init(aWindow,aDownload){this._window=aWindow;this.id=aDownload.id;this._update(aDownload);Services.obs.addObserver(this,"downloads-state-change-"+this.id,true);DEBUG&&debug("observer set for "+this.id);},_update(aDownload){DEBUG&&debug("update "+uneval(aDownload));if(this.id!=aDownload.id){return;}
+let props=["totalBytes","currentBytes","url","path","storageName","storagePath","state","contentType","startTime","sourceAppManifestURL",];let changed=false;let changedProps={};props.forEach(prop=>{if(prop in aDownload&&aDownload[prop]!=this[prop]){this[prop]=aDownload[prop];changedProps[prop]=changed=true;}});
+
+if(changedProps.path&&typeof this.path==="string"){let storages=this._window.navigator.b2g.getDeviceStorages("sdcard");let storageName;storages.forEach(aStorage=>{if(this.path.startsWith(aStorage.storagePath)||(aStorage.default&&!storageName)){storageName=aStorage.storageName;}});if(storageName){let volume=volumeService.getVolumeByName(storageName);if(volume){
+
+this.storageName=storageName;if(this.path.startsWith(volume.mountPoint)){this.storagePath=this.path.substring(this.path.indexOf(volume.mountPoint)+
+volume.mountPoint.length+
+1);}else{
+this.storagePath=this.path.startsWith("/")?this.path.substring(1):this.path;}}}}
+if(aDownload.error){
+
+
+let result=aDownload.error.result;let storage=this._window.navigator.b2g.getDeviceStorage("sdcard");
+if(result==Cr.NS_ERROR_FAILURE&&storage){
+changed=false;DEBUG&&debug("Attempting to infer error via device storage sanity checks.");let available=storage.available();available.onsuccess=function(){DEBUG&&debug("Storage Status = '"+available.result+"'");let inferredError=result;switch(available.result){case"unavailable":inferredError=Cr.NS_ERROR_FILE_NOT_FOUND;break;case"shared":inferredError=Cr.NS_ERROR_FILE_ACCESS_DENIED;break;}
+this._updateWithError(aDownload,inferredError);}.bind(this);available.onerror=function(){this._updateWithError(aDownload,result);}.bind(this);}
+this.error=new this._window.DOMException(aDownload.error.result,"NS_ERROR_UNEXPECTED");}else{this.error=null;}
+if(!changed){return;}
+this._sendStateChange();},_updateWithError(aDownload,aError){this.error=new this._window.DOMException(aError,"NS_ERROR_UNEXPECTED");this._sendStateChange();},_sendStateChange(){if(this.__DOM_IMPL__){let event=new this._window.DownloadEvent("statechange",{download:this.__DOM_IMPL__,});DEBUG&&debug("Dispatching statechange event. state="+this.state);this.__DOM_IMPL__.dispatchEvent(event);}},observe(aSubject,aTopic,aData){DEBUG&&debug("DownloadObject observe "+aTopic);if(aTopic!=="downloads-state-change-"+this.id){return;}
+try{let download=JSON.parse(aData);if(download.startTime){download.startTime=new Date(download.startTime);}
+this._update(download);}catch(e){}},classDescription:"DownloadObject",classID:Components.ID("{ee82e19f-8ead-406f-ad91-194e77a61549}"),contractID:"@mozilla.org/download/object;1",QueryInterface:ChromeUtils.generateQI([Ci.nsIObserver,Ci.nsISupportsWeakReference,]),};

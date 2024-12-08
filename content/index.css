@@ -1,0 +1,115 @@
+body{
+	display: block;
+	margin: 0;
+	padding: 0;
+	text-align: center;
+	font-family: arial;
+	background-image: linear-gradient(#78bfef 0%, #2f5ea8 50%, #130a3c 100%);
+	background-repeat: no-repeat;
+	background-attachment: fixed;
+}
+
+#title{
+	font-size: 18pt;
+	margin-bottom: 50px;
+}
+
+#main-div{
+	display: inline-block;
+	width: 75vw;
+	margin-top: 50vh;
+	background-color: #ffffff;
+	box-shadow: 2px 2px 4px #1b1b1b;
+	padding: 30px 15px;
+	border-radius: 5px;
+	transform: translateY(-50%)
+}
+
+#fileinput{
+	display: none;
+}
+
+#fileinputlabel{
+	display: inline-block;
+	border-top-left-radius: 7px;
+	border-bottom-left-radius: 7px;
+	background-color: #db7424;
+	color: #ffffff;
+	padding: 7.92px 10px;
+	vertical-align: bottom;
+	cursor: pointer;
+	transition: 100ms;
+	-moz-user-select: none;
+}
+
+#fileinputlabel:hover{
+	background-color: #af5c1e;
+}
+
+#filenamearea{
+	display: inline-block;
+	padding: 3px 3px;
+	border: 2px solid #db7424;
+	border-left: none;
+	border-top-right-radius: 7px;
+	border-bottom-right-radius: 7px;
+}
+
+#filenametext{
+	display: inline-block;
+	min-width: 120px;
+	margin: 0 5px;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+	max-width: 50vw;
+	vertical-align: middle;
+	text-align: left;
+	font-size: 11pt;
+	font-style: italic;
+	color: #878787;
+	-moz-user-select: none;
+}
+
+#fileinputx{
+	display: inline-block;
+	color: #db7424;
+	padding: 2px 5px;
+	cursor: pointer;
+	vertical-align: middle;
+}
+
+#submitbutton{
+	margin-top: 50px;
+	background-color: #db7424;
+	padding: 8px 10px;
+	color: #ffffff;
+	border-radius: 7px;
+	cursor: not-allowed;
+	display: inline-block;
+	transition: 100ms;
+	-moz-user-select: none;
+}
+
+#submitbutton:hover{
+	background-color: #af5c1e;
+}
+
+#statusmsg{
+	display: inline-block;
+	max-width: 50vw;
+	height: 25px;
+	margin-top: 30px;
+	vertical-align: middle;
+}
+
+#errormsg{
+	color: red;
+	display: none;
+}
+
+#helplink{
+	display: inline-block;
+	margin-top: 30px;
+	font-size: 11pt;
+}

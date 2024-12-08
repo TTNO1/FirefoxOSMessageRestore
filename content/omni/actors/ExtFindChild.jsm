@@ -1,0 +1,3 @@
+"use strict";var EXPORTED_SYMBOLS=["ExtFindChild"];ChromeUtils.defineModuleGetter(this,"FindContent","resource://gre/modules/FindContent.jsm");class ExtFindChild extends JSWindowActorChild{receiveMessage(message){if(!this._findContent){this._findContent=new FindContent(this.docShell);}
+switch(message.name){case"ext-Finder:CollectResults":this.finderInited=true;return this._findContent.findRanges(message.data);case"ext-Finder:HighlightResults":return this._findContent.highlightResults(message.data);case"ext-Finder:ClearHighlighting":this._findContent.highlighter.highlight(false);break;}
+return null;}}

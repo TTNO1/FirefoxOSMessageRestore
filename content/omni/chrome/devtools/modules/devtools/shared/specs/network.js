@@ -1,0 +1,1 @@
+"use strict";const{generateActorSpec,Arg,RetVal}=require("devtools/shared/protocol");const networkSpec=generateActorSpec({typeName:"network",methods:{setBlockedUrls:{request:{urls:Arg(0,"array:string"),},},getBlockedUrls:{request:{},response:{urls:RetVal("array:string"),},},},});exports.networkSpec=networkSpec;

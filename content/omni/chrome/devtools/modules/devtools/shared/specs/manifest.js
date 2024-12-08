@@ -1,0 +1,1 @@
+"use strict";const{generateActorSpec,RetVal}=require("devtools/shared/protocol");const manifestSpec=generateActorSpec({typeName:"manifest",methods:{fetchCanonicalManifest:{request:{},response:RetVal("json"),},},});exports.manifestSpec=manifestSpec;

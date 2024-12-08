@@ -1,0 +1,4 @@
+"use strict";const Services=require("Services");const CONTENT_PROCESS_SCRIPT="resource://devtools/server/actors/webconsole/content-process-forward.js";class ContentProcessListener{constructor(handler){this.handler=handler;Services.ppmm.addMessageListener("Console:Log",this);Services.ppmm.loadProcessScript(CONTENT_PROCESS_SCRIPT,true);}
+receiveMessage(message){const logMsg=message.data;logMsg.wrappedJSObject=logMsg;this.handler(logMsg);}
+destroy(){ Services.ppmm.broadcastAsyncMessage("DevTools:StopForwardingContentProcessMessage");Services.ppmm.removeMessageListener("Console:Log",this);Services.ppmm.removeDelayedProcessScript(CONTENT_PROCESS_SCRIPT);this.handler=null;}}
+exports.ContentProcessListener=ContentProcessListener;

@@ -1,0 +1,1 @@
+"use strict";module.exports=function defer(){let resolve,reject;const promise=new Promise(function(res,rej){resolve=res;reject=rej;});return{resolve,reject,promise};};

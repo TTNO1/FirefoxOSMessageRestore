@@ -1,0 +1,1 @@
+"use strict";const{Arg,generateActorSpec}=require("devtools/shared/protocol");const mediaRuleSpec=generateActorSpec({typeName:"mediarule",events:{"matches-change":{type:"matchesChange",matches:Arg(0,"boolean"),},},});exports.mediaRuleSpec=mediaRuleSpec;

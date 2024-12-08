@@ -1,0 +1,3 @@
+"use strict";function throttle(func,wait,scope){let args,result;let timeout=null;let previous=0;const later=function(){previous=Date.now();timeout=null;result=func.apply(scope,args);args=null;};return function(){const now=Date.now();const remaining=wait-(now-previous);args=arguments;if(remaining<=0){clearTimeout(timeout);timeout=null;previous=now;result=func.apply(scope,args);args=null;}else if(!timeout){timeout=setTimeout(later,remaining);}
+return result;};}
+exports.throttle=throttle;

@@ -1,0 +1,1 @@
+"use strict";var EXPORTED_SYMBOLS=["AboutHttpsOnlyErrorChild"];const{RemotePageChild}=ChromeUtils.import("resource://gre/actors/RemotePageChild.jsm");class AboutHttpsOnlyErrorChild extends RemotePageChild{}

@@ -1,0 +1,2 @@
+"use strict";const{ResourceWatcher,}=require("devtools/shared/resources/resource-watcher");module.exports=async function({targetFront,onAvailable}){if(!targetFront.hasActor("changes")){return;}
+const changesFront=await targetFront.getFront("changes");const changes=await changesFront.allChanges();await onAvailable(changes.map(change=>toResource(change)));changesFront.on("add-change",change=>onAvailable([toResource(change)]));};function toResource(change){return Object.assign(change,{resourceType:ResourceWatcher.TYPES.CSS_CHANGE,});}

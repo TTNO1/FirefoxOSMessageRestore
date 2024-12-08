@@ -1,0 +1,52 @@
+var EXPORTED_SYMBOLS=["RESTRequest","RESTResponse","TokenAuthenticatedRESTRequest",];const{Services}=ChromeUtils.import("resource://gre/modules/Services.jsm");const{NetUtil}=ChromeUtils.import("resource://gre/modules/NetUtil.jsm");const{Log}=ChromeUtils.import("resource://gre/modules/Log.jsm");const{PromiseUtils}=ChromeUtils.import("resource://gre/modules/PromiseUtils.jsm");const{CommonUtils}=ChromeUtils.import("resource://services-common/utils.js");ChromeUtils.defineModuleGetter(this,"CryptoUtils","resource://services-crypto/utils.js");function decodeString(data,charset){if(!data||!charset){return data;}
+let stringStream=Cc["@mozilla.org/io/string-input-stream;1"].createInstance(Ci.nsIStringInputStream);stringStream.setData(data,data.length);let converterStream=Cc["@mozilla.org/intl/converter-input-stream;1"].createInstance(Ci.nsIConverterInputStream);converterStream.init(stringStream,charset,0,converterStream.DEFAULT_REPLACEMENT_CHARACTER);let remaining=data.length;let body="";while(remaining>0){let str={};let num=converterStream.readString(remaining,str);if(!num){break;}
+remaining-=num;body+=str.value;}
+return body;}
+function RESTRequest(uri){this.status=this.NOT_SENT;
+if(!(uri instanceof Ci.nsIURI)){uri=Services.io.newURI(uri);}
+this.uri=uri;this._headers={};this._deferred=PromiseUtils.defer();this._log=Log.repository.getLogger(this._logName);this._log.manageLevelFromPref("services.common.log.logger.rest.request");}
+RESTRequest.prototype={_logName:"Services.Common.RESTRequest",QueryInterface:ChromeUtils.generateQI(["nsIInterfaceRequestor","nsIChannelEventSink",]),uri:null,method:null,response:null,loadFlags:Ci.nsIRequest.LOAD_BYPASS_CACHE|Ci.nsIRequest.INHIBIT_CACHING|Ci.nsIRequest.LOAD_ANONYMOUS,channel:null,status:null,NOT_SENT:0,SENT:1,IN_PROGRESS:2,COMPLETED:4,ABORTED:8,statusText:null,timeout:300,charset:"utf-8",setHeader(name,value){this._headers[name.toLowerCase()]=value;},async get(){return this.dispatch("GET",null);},async patch(data){return this.dispatch("PATCH",data);},async put(data){return this.dispatch("PUT",data);},async post(data){return this.dispatch("POST",data);},async delete(){return this.dispatch("DELETE",null);},abort(rejectWithError=null){if(this.status!=this.SENT&&this.status!=this.IN_PROGRESS){throw new Error("Can only abort a request that has been sent.");}
+this.status=this.ABORTED;this.channel.cancel(Cr.NS_BINDING_ABORTED);if(this.timeoutTimer){this.timeoutTimer.clear();}
+if(rejectWithError){this._deferred.reject(rejectWithError);}},async dispatch(method,data){if(this.status!=this.NOT_SENT){throw new Error("Request has already been sent!");}
+this.method=method;let channel=NetUtil.newChannel({uri:this.uri,loadUsingSystemPrincipal:true,}).QueryInterface(Ci.nsIRequest).QueryInterface(Ci.nsIHttpChannel);this.channel=channel;channel.loadFlags|=this.loadFlags;channel.notificationCallbacks=this;this._log.debug(`${method} request to ${this.uri.spec}`);let headers=this._headers;for(let key in headers){if(key=="authorization"||key=="x-client-state"){this._log.trace("HTTP Header "+key+": ***** (suppressed)");}else{this._log.trace("HTTP Header "+key+": "+headers[key]);}
+channel.setRequestHeader(key,headers[key],false);} 
+if(!headers.accept){channel.setRequestHeader("accept","application/json;q=0.9,*/*;q=0.2",false);}
+if(method=="PUT"||method=="POST"||method=="PATCH"){
+let contentType=headers["content-type"];if(typeof data!="string"){data=JSON.stringify(data);if(!contentType){contentType="application/json";}
+if(!contentType.includes("charset")){data=CommonUtils.encodeUTF8(data);contentType+="; charset=utf-8";}else{
+
+Cu.reportError("rest.js found an object to JSON.stringify but also a "+"content-type header with a charset specification. "+"This probably isn't going to do what you expect");}}
+if(!contentType){contentType="text/plain";}
+this._log.debug(method+" Length: "+data.length);if(this._log.level<=Log.Level.Trace){this._log.trace(method+" Body: "+data);}
+let stream=Cc["@mozilla.org/io/string-input-stream;1"].createInstance(Ci.nsIStringInputStream);stream.setData(data,data.length);channel.QueryInterface(Ci.nsIUploadChannel);channel.setUploadStream(stream,contentType,data.length);}
+
+channel.requestMethod=method;
+channel.contentCharset=this.charset;try{channel.asyncOpen(this);}catch(ex){this._log.warn("Caught an error in asyncOpen",ex);this._deferred.reject(ex);}
+this.status=this.SENT;this.delayTimeout();return this._deferred.promise;},delayTimeout(){if(this.timeout){CommonUtils.namedTimer(this.abortTimeout,this.timeout*1000,this,"timeoutTimer");}},abortTimeout(){this.abort(Components.Exception("Aborting due to channel inactivity.",Cr.NS_ERROR_NET_TIMEOUT));},onStartRequest(channel){if(this.status==this.ABORTED){this._log.trace("Not proceeding with onStartRequest, request was aborted.");this._deferred.reject(Components.Exception("Request aborted",Cr.NS_BINDING_ABORTED));return;}
+try{channel.QueryInterface(Ci.nsIHttpChannel);}catch(ex){this._log.error("Unexpected error: channel is not a nsIHttpChannel!");this.status=this.ABORTED;channel.cancel(Cr.NS_BINDING_ABORTED);this._deferred.reject(ex);return;}
+this.status=this.IN_PROGRESS;this._log.trace("onStartRequest: "+channel.requestMethod+" "+channel.URI.spec);this.response=new RESTResponse(this);this.delayTimeout();},onStopRequest(channel,statusCode){if(this.timeoutTimer){this.timeoutTimer.clear();}
+if(this.status==this.ABORTED){this._log.trace("Not proceeding with onStopRequest, request was aborted."); this._deferred.reject(Components.Exception("Request aborted",Cr.NS_BINDING_ABORTED));return;}
+try{channel.QueryInterface(Ci.nsIHttpChannel);}catch(ex){this._log.error("Unexpected error: channel not nsIHttpChannel!");this.status=this.ABORTED;this._deferred.reject(ex);return;}
+this.status=this.COMPLETED;try{this.response.body=decodeString(this.response._rawBody,this.response.charset);this.response._rawBody=null;}catch(ex){this._log.warn(`Exception decoding response - ${this.method} ${channel.URI.spec}`,ex);this._deferred.reject(ex);return;}
+let statusSuccess=Components.isSuccessCode(statusCode);let uri=(channel&&channel.URI&&channel.URI.spec)||"<unknown>";this._log.trace("Channel for "+
+channel.requestMethod+" "+
+uri+" returned status code "+
+statusCode);
+
+if(!statusSuccess){let message=Components.Exception("",statusCode).name;let error=Components.Exception(message,statusCode);this._log.debug(this.method+" "+uri+" failed: "+statusCode+" - "+message);if(this._log.level<=Log.Level.Trace){this._log.trace(this.method+" body",this.response.body);}
+this._deferred.reject(error);return;}
+this._log.debug(this.method+" "+uri+" "+this.response.status); delete this._inputStream;this._deferred.resolve(this.response);},onDataAvailable(channel,stream,off,count){try{channel.QueryInterface(Ci.nsIHttpChannel);}catch(ex){this._log.error("Unexpected error: channel not nsIHttpChannel!");this.abort(ex);return;}
+if(channel.contentCharset){this.response.charset=channel.contentCharset;}else{this.response.charset=null;}
+if(!this._inputStream){this._inputStream=Cc["@mozilla.org/scriptableinputstream;1"].createInstance(Ci.nsIScriptableInputStream);}
+this._inputStream.init(stream);this.response._rawBody+=this._inputStream.read(count);this.delayTimeout();},getInterface(aIID){return this.QueryInterface(aIID);},shouldCopyOnRedirect(oldChannel,newChannel,flags){let isInternal=!!(flags&Ci.nsIChannelEventSink.REDIRECT_INTERNAL);let isSameURI=newChannel.URI.equals(oldChannel.URI);this._log.debug("Channel redirect: "+
+oldChannel.URI.spec+", "+
+newChannel.URI.spec+", internal = "+
+isInternal);return isInternal&&isSameURI;},asyncOnChannelRedirect(oldChannel,newChannel,flags,callback){let oldSpec=oldChannel&&oldChannel.URI?oldChannel.URI.spec:"<undefined>";let newSpec=newChannel&&newChannel.URI?newChannel.URI.spec:"<undefined>";this._log.debug("Channel redirect: "+oldSpec+", "+newSpec+", "+flags);try{newChannel.QueryInterface(Ci.nsIHttpChannel);}catch(ex){this._log.error("Unexpected error: channel not nsIHttpChannel!");callback.onRedirectVerifyCallback(Cr.NS_ERROR_NO_INTERFACE);return;}
+try{if(this.shouldCopyOnRedirect(oldChannel,newChannel,flags)){this._log.trace("Copying headers for safe internal redirect.");for(let key in this._headers){newChannel.setRequestHeader(key,this._headers[key],false);}}}catch(ex){this._log.error("Error copying headers",ex);}
+this.channel=newChannel;callback.onRedirectVerifyCallback(Cr.NS_OK);},};function RESTResponse(request=null){this.body="";this._rawBody="";this.request=request;this._log=Log.repository.getLogger(this._logName);this._log.manageLevelFromPref("services.common.log.logger.rest.response");}
+RESTResponse.prototype={_logName:"Services.Common.RESTResponse",request:null,get status(){let status;try{status=this.request.channel.responseStatus;}catch(ex){this._log.debug("Caught exception fetching HTTP status code",ex);return null;}
+Object.defineProperty(this,"status",{value:status});return status;},get statusText(){let statusText;try{statusText=this.request.channel.responseStatusText;}catch(ex){this._log.debug("Caught exception fetching HTTP status text",ex);return null;}
+Object.defineProperty(this,"statusText",{value:statusText});return statusText;},get success(){let success;try{success=this.request.channel.requestSucceeded;}catch(ex){this._log.debug("Caught exception fetching HTTP success flag",ex);return null;}
+Object.defineProperty(this,"success",{value:success});return success;},get headers(){let headers={};try{this._log.trace("Processing response headers.");let channel=this.request.channel.QueryInterface(Ci.nsIHttpChannel);channel.visitResponseHeaders(function(header,value){headers[header.toLowerCase()]=value;});}catch(ex){this._log.debug("Caught exception processing response headers",ex);return null;}
+Object.defineProperty(this,"headers",{value:headers});return headers;},body:null,};function TokenAuthenticatedRESTRequest(uri,authToken,extra){RESTRequest.call(this,uri);this.authToken=authToken;this.extra=extra||{};}
+TokenAuthenticatedRESTRequest.prototype={__proto__:RESTRequest.prototype,async dispatch(method,data){let sig=await CryptoUtils.computeHTTPMACSHA1(this.authToken.id,this.authToken.key,method,this.uri,this.extra);this.setHeader("Authorization",sig.getHeader());return super.dispatch(method,data);},};

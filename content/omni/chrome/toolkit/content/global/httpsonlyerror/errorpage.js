@@ -1,0 +1,7 @@
+"use strict";const searchParams=new URLSearchParams(document.documentURI.split("?")[1]);function initPage(){if(!searchParams.get("e")){document.getElementById("error").remove();}
+const explanation1=document.getElementById("insecure-explanation-unavailable");const pageUrl=new URL(window.location.href.replace(/^view-source:/,""));document.l10n.setAttributes(explanation1,"about-httpsonly-explanation-unavailable2",{websiteUrl:pageUrl.host});const baseSupportURL=RPMGetFormatURLPref("app.support.baseURL");document.getElementById("learnMoreLink").setAttribute("href",baseSupportURL+"https-only-prefs");document.getElementById("openInsecure").addEventListener("click",onOpenInsecureButtonClick);if(window.top==window){document.getElementById("goBack").addEventListener("click",onReturnButtonClick);addAutofocus("#goBack","beforeend");}else{document.getElementById("goBack").remove();}}
+function onOpenInsecureButtonClick(){RPMSendAsyncMessage("openInsecure",{inFrame:window.top!=window,});}
+function onReturnButtonClick(){RPMSendAsyncMessage("goBack");}
+function addAutofocus(selector,position="afterbegin"){if(window.top!=window){return;}
+var button=document.querySelector(selector);var parent=button.parentNode;button.remove();button.setAttribute("autofocus","true");parent.insertAdjacentElement(position,button);}
+initPage();let event=new CustomEvent("AboutNetErrorLoad",{bubbles:true});document.dispatchEvent(event);

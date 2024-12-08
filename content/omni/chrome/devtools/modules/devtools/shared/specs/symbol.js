@@ -1,0 +1,1 @@
+"use strict";const{generateActorSpec}=require("devtools/shared/protocol");const symbolSpec=generateActorSpec({typeName:"symbol",methods:{release:{request:{},response:{},},},});exports.symbolSpec=symbolSpec;

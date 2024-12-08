@@ -1,0 +1,3 @@
+"use strict";var{Ci,Cc}=require("chrome");var DevToolsUtils=require("devtools/shared/DevToolsUtils");DevToolsUtils.defineLazyGetter(this,"localCertService",()=>{ Cc["@mozilla.org/psm;1"].getService(Ci.nsISupports);return Cc["@mozilla.org/security/local-cert-service;1"].getService(Ci.nsILocalCertService);});const localCertName="devtools";exports.local={getOrCreate(){return new Promise((resolve,reject)=>{localCertService.getOrCreateCert(localCertName,{handleCert:function(cert,rv){if(rv){reject(rv);return;}
+resolve(cert);},});});},remove(){return new Promise((resolve,reject)=>{localCertService.removeCert(localCertName,{handleCert:function(rv){if(rv){reject(rv);return;}
+resolve();},});});},};

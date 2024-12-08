@@ -1,0 +1,7 @@
+"use strict";const{Arg,RetVal,generateActorSpec,types,}=require("devtools/shared/protocol");types.addDictType("webExtensionCallerInfo",{
+url:"string",lineNumber:"nullable:number",addonId:"string",});types.addDictType("webExtensionEvalOptions",{frameURL:"nullable:string",contextSecurityOrigin:"nullable:string",useContentScriptContext:"nullable:boolean",
+evalResultAsGrip:"nullable:boolean",toolboxSelectedNodeActorID:"nullable:string",toolboxConsoleActorID:"nullable:string",});types.addDictType("webExtensionEvalExceptionInfo",{
+isError:"nullable:boolean",code:"nullable:string",description:"nullable:string",details:"nullable:array:json",
+isException:"nullable:string",value:"nullable:string",});types.addDictType("webExtensionEvalResult",{
+value:"nullable:json",valueGrip:"nullable:json",
+exceptionInfo:"nullable:webExtensionEvalExceptionInfo",});types.addDictType("webExtensionReloadOptions",{ignoreCache:"nullable:boolean",userAgent:"nullable:string",injectedScript:"nullable:string",});const webExtensionInspectedWindowSpec=generateActorSpec({typeName:"webExtensionInspectedWindow",methods:{reload:{request:{webExtensionCallerInfo:Arg(0,"webExtensionCallerInfo"),options:Arg(1,"webExtensionReloadOptions"),},},eval:{request:{webExtensionCallerInfo:Arg(0,"webExtensionCallerInfo"),expression:Arg(1,"string"),options:Arg(2,"webExtensionEvalOptions"),},response:{evalResult:RetVal("webExtensionEvalResult"),},},},});exports.webExtensionInspectedWindowSpec=webExtensionInspectedWindowSpec;

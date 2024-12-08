@@ -1,0 +1,5 @@
+"use strict";var{ExtensionError}=ExtensionUtils;class ContentScriptChild{constructor(context,scriptId){this.context=context;this.scriptId=scriptId;this.unregistered=false;}
+async unregister(){if(this.unregistered){throw new ExtensionError("Content script already unregistered");}
+this.unregistered=true;await this.context.childManager.callParentAsyncFunction("contentScripts.unregister",[this.scriptId]);this.context=null;}
+api(){const{context}=this;return{unregister:()=>{return context.wrapPromise(this.unregister());},};}}
+this.contentScripts=class extends ExtensionAPI{getAPI(context){return{contentScripts:{register(options){return context.cloneScope.Promise.resolve().then(async()=>{const scriptId=await context.childManager.callParentAsyncFunction("contentScripts.register",[options]);const registeredScript=new ContentScriptChild(context,scriptId);return Cu.cloneInto(registeredScript.api(),context.cloneScope,{cloneFunctions:true,});});},},};}};

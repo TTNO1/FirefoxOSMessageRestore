@@ -1,0 +1,1 @@
+"use strict";const{RetVal,generateActorSpec}=require("devtools/shared/protocol");const cssPropertiesSpec=generateActorSpec({typeName:"cssProperties",methods:{getCSSDatabase:{request:{},response:RetVal("json"),},},});exports.cssPropertiesSpec=cssPropertiesSpec;

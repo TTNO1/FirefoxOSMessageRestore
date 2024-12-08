@@ -1,0 +1,67 @@
+"use strict";var{Ci,Cc,CC,Cr}=require("chrome");Cc["@mozilla.org/psm;1"].getService(Ci.nsISupports);var Services=require("Services");var promise=require("promise");var defer=require("devtools/shared/defer");var DevToolsUtils=require("devtools/shared/DevToolsUtils");var{dumpn,dumpv}=DevToolsUtils;loader.lazyRequireGetter(this,"WebSocketServer","devtools/server/socket/websocket-server");loader.lazyRequireGetter(this,"DebuggerTransport","devtools/shared/transport/transport",true);loader.lazyRequireGetter(this,"WebSocketDebuggerTransport","devtools/shared/transport/websocket-transport");loader.lazyRequireGetter(this,"discovery","devtools/shared/discovery/discovery");loader.lazyRequireGetter(this,"cert","devtools/shared/security/cert");loader.lazyRequireGetter(this,"Authenticators","devtools/shared/security/auth",true);loader.lazyRequireGetter(this,"AuthenticationResult","devtools/shared/security/auth",true);loader.lazyRequireGetter(this,"EventEmitter","devtools/shared/event-emitter");DevToolsUtils.defineLazyGetter(this,"nsFile",()=>{return CC("@mozilla.org/file/local;1","nsIFile","initWithPath");});DevToolsUtils.defineLazyGetter(this,"socketTransportService",()=>{return Cc["@mozilla.org/network/socket-transport-service;1"].getService(Ci.nsISocketTransportService);});DevToolsUtils.defineLazyGetter(this,"certOverrideService",()=>{return Cc["@mozilla.org/security/certoverride;1"].getService(Ci.nsICertOverrideService);});DevToolsUtils.defineLazyGetter(this,"nssErrorsService",()=>{return Cc["@mozilla.org/nss_errors_service;1"].getService(Ci.nsINSSErrorsService);});var DebuggerSocket={};DebuggerSocket.connect=async function(settings){ if(!settings.authenticator){settings.authenticator=new(Authenticators.get().Client)();}
+_validateSettings(settings); const{host,port,encryption,authenticator,cert}=settings;const transport=await _getTransport(settings);await authenticator.authenticate({host,port,encryption,cert,transport,});transport.connectionSettings=settings;return transport;};function _validateSettings(settings){const{encryption,webSocket,authenticator}=settings;if(webSocket&&encryption){throw new Error("Encryption not supported on WebSocket transport");}
+authenticator.validateSettings(settings);}
+var _getTransport=async function(settings){const{host,port,encryption,webSocket}=settings;if(webSocket){ const socket=await new Promise((resolve,reject)=>{const s=new WebSocket(`ws://${host}:${port}`);s.onopen=()=>resolve(s);s.onerror=err=>reject(err);});return new WebSocketDebuggerTransport(socket);}
+let attempt=await _attemptTransport(settings);if(attempt.transport){ return attempt.transport;}
+
+if(encryption&&attempt.certError){_storeCertOverride(attempt.s,host,port);}else{throw new Error("Connection failed");}
+attempt=await _attemptTransport(settings);if(attempt.transport){ return attempt.transport;}
+throw new Error("Connection failed even after cert override");};var _attemptTransport=async function(settings){const{authenticator}=settings;
+const{s,input,output}=await _attemptConnect(settings);
+let alive,certError;try{const results=await _isInputAlive(input);alive=results.alive;certError=results.certError;}catch(e){
+input.close();output.close();throw e;}
+dumpv("Server cert accepted? "+!certError);
+alive=alive&&authenticator.validateConnection({host:settings.host,port:settings.port,encryption:settings.encryption,cert:settings.cert,socket:s,});let transport;if(alive){transport=new DebuggerTransport(input,output);}else{input.close();output.close();}
+return{transport,certError,s};};var _attemptConnect=async function({host,port,encryption}){let s;if(encryption){s=socketTransportService.createTransport(["ssl"],host,port,null);}else{s=socketTransportService.createTransport([],host,port,null);}
+
+if(!host.includes(":")){s.connectionFlags|=Ci.nsISocketTransport.DISABLE_IPV6;}
+
+s.setTimeout(Ci.nsISocketTransport.TIMEOUT_CONNECT,2);
+let clientCert;if(encryption){clientCert=await cert.local.getOrCreate();}
+const deferred=defer();let input;let output;
+
+
+
+
+s.setEventSink({onTransportStatus(transport,status){if(status!=Ci.nsISocketTransport.STATUS_CONNECTING_TO){return;}
+if(encryption){const sslSocketControl=transport.securityInfo.QueryInterface(Ci.nsISSLSocketControl);sslSocketControl.clientCert=clientCert;}
+try{input=s.openInputStream(0,0,0);}catch(e){deferred.reject(e);}
+deferred.resolve({s,input,output});},},Services.tm.currentThread);
+
+try{output=s.openOutputStream(0,0,0);}catch(e){deferred.reject(e);}
+deferred.promise.catch(e=>{if(input){input.close();}
+if(output){output.close();}
+DevToolsUtils.reportException("_attemptConnect",e);});return deferred.promise;};function _isInputAlive(input){const deferred=defer();input.asyncWait({onInputStreamReady(stream){try{stream.available();deferred.resolve({alive:true});}catch(e){try{ const errorClass=nssErrorsService.getErrorClass(e.result);if(errorClass===Ci.nsINSSErrorsService.ERROR_CLASS_BAD_CERT){deferred.resolve({certError:true});}else{deferred.reject(e);}}catch(nssErr){deferred.reject(e);}}},},0,0,Services.tm.currentThread);return deferred.promise;}
+function _storeCertOverride(s,host,port){ const cert=s.securityInfo.QueryInterface(Ci.nsITransportSecurityInfo).serverCert;const overrideBits=Ci.nsICertOverrideService.ERROR_UNTRUSTED|Ci.nsICertOverrideService.ERROR_MISMATCH;certOverrideService.rememberValidityOverride(host,port,cert,overrideBits,true );}
+function SocketListener(devToolsServer,socketOptions){this._devToolsServer=devToolsServer; this._socketOptions={authenticator:socketOptions.authenticator||new(Authenticators.get().Server)(),discoverable:!!socketOptions.discoverable,encryption:!!socketOptions.encryption,portOrPath:socketOptions.portOrPath||null,webSocket:!!socketOptions.webSocket,};EventEmitter.decorate(this);}
+SocketListener.prototype={get authenticator(){return this._socketOptions.authenticator;},get discoverable(){return this._socketOptions.discoverable;},get encryption(){return this._socketOptions.encryption;},get portOrPath(){return this._socketOptions.portOrPath;},get webSocket(){return this._socketOptions.webSocket;},_validateOptions:function(){if(this.portOrPath===null){throw new Error("Must set a port / path to listen on.");}
+if(this.discoverable&&!Number(this.portOrPath)){throw new Error("Discovery only supported for TCP sockets.");}
+if(this.encryption&&this.webSocket){throw new Error("Encryption not supported on WebSocket transport");}
+this.authenticator.validateOptions(this);},open:function(){this._validateOptions();this._devToolsServer.addSocketListener(this);let flags=Ci.nsIServerSocket.KeepWhenOffline;if(Services.prefs.getBoolPref("devtools.debugger.force-local")){flags|=Ci.nsIServerSocket.LoopbackOnly;}
+const self=this;return(async function(){const backlog=4;self._socket=self._createSocketInstance();if(self.isPortBased){const port=Number(self.portOrPath);self._socket.initSpecialConnection(port,flags,backlog);}else if(self.portOrPath.startsWith("/")){const file=nsFile(self.portOrPath);if(file.exists()){file.remove(false);}
+self._socket.initWithFilename(file,parseInt("666",8),backlog);}else{ self._socket.initWithAbstractAddress(self.portOrPath,backlog);}
+await self._setAdditionalSocketOptions();self._socket.asyncListen(self);dumpn("Socket listening on: "+(self.port||self.portOrPath));})().then(()=>{this._advertise();}).catch(e=>{dumpn("Could not start debugging listener on '"+
+this.portOrPath+"': "+
+e);this.close();});},_advertise:function(){if(!this.discoverable||!this.port){return;}
+const advertisement={port:this.port,encryption:this.encryption,};this.authenticator.augmentAdvertisement(this,advertisement);discovery.addService("devtools",advertisement);},_createSocketInstance:function(){if(this.encryption){return Cc["@mozilla.org/network/tls-server-socket;1"].createInstance(Ci.nsITLSServerSocket);}
+return Cc["@mozilla.org/network/server-socket;1"].createInstance(Ci.nsIServerSocket);},async _setAdditionalSocketOptions(){if(this.encryption){this._socket.serverCert=await cert.local.getOrCreate();this._socket.setSessionTickets(false);const requestCert=Ci.nsITLSServerSocket.REQUEST_NEVER;this._socket.setRequestClientCertificate(requestCert);}
+this.authenticator.augmentSocketOptions(this,this._socket);},close:function(){if(this.discoverable&&this.port){discovery.removeService("devtools");}
+if(this._socket){this._socket.close();this._socket=null;}
+this._devToolsServer.removeSocketListener(this);},get host(){if(!this._socket){return null;}
+if(Services.prefs.getBoolPref("devtools.debugger.force-local")){return"127.0.0.1";}
+return"0.0.0.0";},get isPortBased(){return!!Number(this.portOrPath);},get port(){if(!this.isPortBased||!this._socket){return null;}
+return this._socket.port;},get cert(){if(!this._socket||!this._socket.serverCert){return null;}
+return{sha256:this._socket.serverCert.sha256Fingerprint,};},onAllowedConnection(transport){dumpn("onAllowedConnection, transport: "+transport);this.emit("accepted",transport,this);}, onSocketAccepted:DevToolsUtils.makeInfallible(function(socket,socketTransport){const connection=new ServerSocketConnection(this,socketTransport);connection.once("allowed",this.onAllowedConnection.bind(this));},"SocketListener.onSocketAccepted"),onStopListening:function(socket,status){dumpn("onStopListening, status: "+status);},};loader.lazyGetter(this,"HANDSHAKE_TIMEOUT",()=>{return Services.prefs.getIntPref("devtools.remote.tls-handshake-timeout");});function ServerSocketConnection(listener,socketTransport){this._listener=listener;this._socketTransport=socketTransport;this._handle();EventEmitter.decorate(this);}
+ServerSocketConnection.prototype={get authentication(){return this._listener.authenticator.mode;},get host(){return this._socketTransport.host;},get port(){return this._socketTransport.port;},get cert(){if(!this._clientCert){return null;}
+return{sha256:this._clientCert.sha256Fingerprint,};},get address(){return this.host+":"+this.port;},get client(){const client={host:this.host,port:this.port,};if(this.cert){client.cert=this.cert;}
+return client;},get server(){const server={host:this._listener.host,port:this._listener.port,};if(this._listener.cert){server.cert=this._listener.cert;}
+return server;},async _handle(){dumpn("Debugging connection starting authentication on "+this.address);try{this._listenForTLSHandshake();await this._createTransport();await this._awaitTLSHandshake();await this._authenticate();this.allow();}catch(e){this.deny(e);}},async _createTransport(){const input=this._socketTransport.openInputStream(0,0,0);const output=this._socketTransport.openOutputStream(0,0,0);if(this._listener.webSocket){const socket=await WebSocketServer.accept(this._socketTransport,input,output);this._transport=new WebSocketDebuggerTransport(socket);}else{this._transport=new DebuggerTransport(input,output);}
+
+this._transport.hooks={onClosed:reason=>{this.deny(reason);},};this._transport.ready();},_setSecurityObserver(observer){if(!this._socketTransport||!this._socketTransport.securityInfo){return;}
+const connectionInfo=this._socketTransport.securityInfo.QueryInterface(Ci.nsITLSServerConnectionInfo);connectionInfo.setSecurityObserver(observer);},_listenForTLSHandshake(){this._handshakeDeferred=defer();if(!this._listener.encryption){this._handshakeDeferred.resolve();return;}
+this._setSecurityObserver(this);this._handshakeTimeout=setTimeout(this._onHandshakeTimeout.bind(this),HANDSHAKE_TIMEOUT);},_awaitTLSHandshake(){return this._handshakeDeferred.promise;},_onHandshakeTimeout(){dumpv("Client failed to complete TLS handshake");this._handshakeDeferred.reject(Cr.NS_ERROR_NET_TIMEOUT);}, onHandshakeDone(socket,clientStatus){clearTimeout(this._handshakeTimeout);this._setSecurityObserver(null);dumpv("TLS version:    "+clientStatus.tlsVersionUsed.toString(16));dumpv("TLS cipher:     "+clientStatus.cipherName);dumpv("TLS key length: "+clientStatus.keyLength);dumpv("TLS MAC length: "+clientStatus.macLength);this._clientCert=clientStatus.peerCert;if(clientStatus.tlsVersionUsed<Ci.nsITLSClientStatus.TLS_VERSION_1_2){this._handshakeDeferred.reject(Cr.NS_ERROR_CONNECTION_REFUSED);return;}
+this._handshakeDeferred.resolve();},async _authenticate(){const result=await this._listener.authenticator.authenticate({client:this.client,server:this.server,transport:this._transport,});switch(result){case AuthenticationResult.DISABLE_ALL:this._listener._devToolsServer.closeAllSocketListeners();Services.prefs.setBoolPref("devtools.debugger.remote-enabled",false);return promise.reject(Cr.NS_ERROR_CONNECTION_REFUSED);case AuthenticationResult.DENY:return promise.reject(Cr.NS_ERROR_CONNECTION_REFUSED);case AuthenticationResult.ALLOW:case AuthenticationResult.ALLOW_PERSIST:return promise.resolve();default:return promise.reject(Cr.NS_ERROR_CONNECTION_REFUSED);}},deny(result){if(this._destroyed){return;}
+let errorName=result;for(const name in Cr){if(Cr[name]===result){errorName=name;break;}}
+dumpn("Debugging connection denied on "+this.address+" ("+errorName+")");if(this._transport){this._transport.hooks=null;this._transport.close(result);}
+this._socketTransport.close(result);this.destroy();},allow(){if(this._destroyed){return;}
+dumpn("Debugging connection allowed on "+this.address);this.emit("allowed",this._transport);this.destroy();},destroy(){this._destroyed=true;clearTimeout(this._handshakeTimeout);this._setSecurityObserver(null);this._listener=null;this._socketTransport=null;this._transport=null;this._clientCert=null;},};exports.DebuggerSocket=DebuggerSocket;exports.SocketListener=SocketListener;

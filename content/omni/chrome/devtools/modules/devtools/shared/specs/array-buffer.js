@@ -1,0 +1,1 @@
+"use strict";const protocol=require("devtools/shared/protocol");const{Arg,RetVal,generateActorSpec}=protocol;const arrayBufferSpec=generateActorSpec({typeName:"arraybuffer",methods:{slice:{request:{start:Arg(0),count:Arg(1),},response:RetVal("json"),},release:{release:true},},});exports.arrayBufferSpec=arrayBufferSpec;

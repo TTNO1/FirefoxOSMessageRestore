@@ -1,0 +1,43 @@
+"use strict";const EXPORTED_SYMBOLS=["MarionetteCommandsChild"];const{XPCOMUtils}=ChromeUtils.import("resource://gre/modules/XPCOMUtils.jsm");XPCOMUtils.defineLazyModuleGetters(this,{action:"chrome://marionette/content/action.js",atom:"chrome://marionette/content/atom.js",element:"chrome://marionette/content/element.js",error:"chrome://marionette/content/error.js",evaluate:"chrome://marionette/content/evaluate.js",event:"chrome://marionette/content/event.js",interaction:"chrome://marionette/content/interaction.js",legacyaction:"chrome://marionette/content/legacyaction.js",Log:"chrome://marionette/content/log.js",sandbox:"chrome://marionette/content/evaluate.js",Sandboxes:"chrome://marionette/content/evaluate.js",});XPCOMUtils.defineLazyGetter(this,"logger",()=>Log.get());class MarionetteCommandsChild extends JSWindowActorChild{constructor(){super(); this.sandboxes=new Sandboxes(()=>this.contentWindow);}
+get innerWindowId(){return this.manager.innerWindowId;}
+get legacyactions(){if(!this._legacyactions){this._legacyactions=new legacyaction.Chain();}
+return this._legacyactions;}
+actorCreated(){logger.trace(`[${this.browsingContext.id}] MarionetteCommands actor created `+`for window id ${this.innerWindowId}`);
+ this.contentWindow.addEventListener("click",event.DoubleClickTracker.setClick);this.contentWindow.addEventListener("dblclick",event.DoubleClickTracker.resetClick);this.contentWindow.addEventListener("unload",event.DoubleClickTracker.resetClick,true);}
+async receiveMessage(msg){try{let result;const{name,data:serializedData}=msg;const data=evaluate.fromJSON(serializedData,null,this.contentWindow);switch(name){case"MarionetteCommandsParent:clearElement":this.clearElement(data);break;case"MarionetteCommandsParent:clickElement":result=await this.clickElement(data);break;case"MarionetteCommandsParent:executeScript":result=await this.executeScript(data);break;case"MarionetteCommandsParent:findElement":result=await this.findElement(data);break;case"MarionetteCommandsParent:findElements":result=await this.findElements(data);break;case"MarionetteCommandsParent:getCurrentUrl":result=await this.getCurrentUrl();break;case"MarionetteCommandsParent:getActiveElement":result=await this.getActiveElement();break;case"MarionetteCommandsParent:getElementAttribute":result=await this.getElementAttribute(data);break;case"MarionetteCommandsParent:getElementProperty":result=await this.getElementProperty(data);break;case"MarionetteCommandsParent:getElementRect":result=await this.getElementRect(data);break;case"MarionetteCommandsParent:getElementTagName":result=await this.getElementTagName(data);break;case"MarionetteCommandsParent:getElementText":result=await this.getElementText(data);break;case"MarionetteCommandsParent:getElementValueOfCssProperty":result=await this.getElementValueOfCssProperty(data);break;case"MarionetteCommandsParent:getPageSource":result=await this.getPageSource();break;case"MarionetteCommandsParent:getScreenshotRect":result=await this.getScreenshotRect(data);break;case"MarionetteCommandsParent:isElementDisplayed":result=await this.isElementDisplayed(data);break;case"MarionetteCommandsParent:isElementEnabled":result=await this.isElementEnabled(data);break;case"MarionetteCommandsParent:isElementSelected":result=await this.isElementSelected(data);break;case"MarionetteCommandsParent:performActions":result=await this.performActions(data);break;case"MarionetteCommandsParent:releaseActions":result=await this.releaseActions();break;case"MarionetteCommandsParent:sendKeysToElement":result=await this.sendKeysToElement(data);break;case"MarionetteCommandsParent:singleTap":result=await this.singleTap(data);break;case"MarionetteCommandsParent:switchToFrame":result=await this.switchToFrame(data);break;case"MarionetteCommandsParent:switchToParentFrame":result=await this.switchToParentFrame();break;}
+
+
+return{data:evaluate.toJSON(result)};}catch(e){ return{error:error.wrap(e).toJSON()};}} 
+clearElement(options={}){const{elem}=options;interaction.clearElement(elem);}
+async clickElement(options={}){const{capabilities,elem}=options;return interaction.clickElement(elem,capabilities["moz:accessibilityChecks"],capabilities["moz:webdriverClick"]);}
+async executeScript(options={}){const{args,opts={},script}=options;let sb;if(opts.sandboxName){sb=this.sandboxes.get(opts.sandboxName,opts.newSandbox);}else{sb=sandbox.createMutable(this.contentWindow);}
+return evaluate.sandbox(sb,script,args,opts);}
+async findElement(options={}){const{strategy,selector,opts}=options;opts.all=false;const container={frame:this.contentWindow};return element.find(container,strategy,selector,opts);}
+async findElements(options={}){const{strategy,selector,opts}=options;opts.all=true;const container={frame:this.contentWindow};return element.find(container,strategy,selector,opts);}
+async getActiveElement(){let elem=this.document.activeElement;if(!elem){throw new error.NoSuchElementError();}
+return elem;}
+async getCurrentUrl(){return this.contentWindow.location.href;}
+async getElementAttribute(options={}){const{name,elem}=options;if(element.isBooleanAttribute(elem,name)){if(elem.hasAttribute(name)){return"true";}
+return null;}
+return elem.getAttribute(name);}
+async getElementProperty(options={}){const{name,elem}=options;return typeof elem[name]!="undefined"?elem[name]:null;}
+async getElementRect(options={}){const{elem}=options;const rect=elem.getBoundingClientRect();return{x:rect.x+this.contentWindow.pageXOffset,y:rect.y+this.contentWindow.pageYOffset,width:rect.width,height:rect.height,};}
+async getElementTagName(options={}){const{elem}=options;return elem.tagName.toLowerCase();}
+async getElementText(options={}){const{elem}=options;return atom.getElementText(elem,this.contentWindow);}
+async getElementValueOfCssProperty(options={}){const{name,elem}=options;const style=this.contentWindow.getComputedStyle(elem);return style.getPropertyValue(name);}
+async getPageSource(){return this.document.documentElement.outerHTML;}
+async getScreenshotRect(options={}){const{elem,full=true,scroll=true}=options;const win=elem?this.contentWindow:this.browsingContext.top.window;let rect;if(elem){if(scroll){element.scrollIntoView(elem);}
+rect=this.getElementRect({elem});}else if(full){const docEl=win.document.documentElement;rect=new DOMRect(0,0,docEl.scrollWidth,docEl.scrollHeight);}else{ rect=new DOMRect(win.pageXOffset,win.pageYOffset,win.innerWidth,win.innerHeight);}
+return rect;}
+async isElementDisplayed(options={}){const{capabilities,elem}=options;return interaction.isElementDisplayed(elem,capabilities["moz:accessibilityChecks"]);}
+async isElementEnabled(options={}){const{capabilities,elem}=options;return interaction.isElementEnabled(elem,capabilities["moz:accessibilityChecks"]);}
+async isElementSelected(options={}){const{capabilities,elem}=options;return interaction.isElementSelected(elem,capabilities["moz:accessibilityChecks"]);}
+async performActions(options={}){const{actions,capabilities}=options;await action.dispatch(action.Chain.fromJSON(actions),this.contentWindow,!capabilities["moz:useNonSpecCompliantPointerOrigin"]);}
+async releaseActions(){await action.dispatchTickActions(action.inputsToCancel.reverse(),0,this.contentWindow);action.inputsToCancel.length=0;action.inputStateMap.clear();event.DoubleClickTracker.resetClick();}
+async sendKeysToElement(options={}){const{capabilities,elem,text}=options;const opts={strictFileInteractability:capabilities.strictFileInteractability,accessibilityChecks:capabilities["moz:accessibilityChecks"],webdriverClick:capabilities["moz:webdriverClick"],};return interaction.sendKeysToElement(elem,text,opts);}
+async singleTap(options={}){const{capabilities,elem,x,y}=options;return this.legacyactions.singleTap(elem,x,y,capabilities);}
+async switchToFrame(options={}){const{id}=options;const childContexts=this.browsingContext.children;let browsingContext;if(id==null){browsingContext=this.browsingContext.top;}else if(typeof id=="number"){if(id<0||id>=childContexts.length){throw new error.NoSuchFrameError(`Unable to locate frame with index: ${id}`);}
+browsingContext=childContexts[id];}else{const context=childContexts.find(context=>{return context.embedderElement===id;});if(!context){throw new error.NoSuchFrameError(`Unable to locate frame for element: ${id}`);}
+browsingContext=context;}
+return{browsingContextId:browsingContext.id};}
+async switchToParentFrame(){const browsingContext=this.browsingContext.parent||this.browsingContext;return{browsingContextId:browsingContext.id};}}

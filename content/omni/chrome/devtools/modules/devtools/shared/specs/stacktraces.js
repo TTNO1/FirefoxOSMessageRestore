@@ -1,0 +1,1 @@
+"use strict";const{generateActorSpec,RetVal,Arg}=require("devtools/shared/protocol");const stackTracesSpec=generateActorSpec({typeName:"stacktraces",methods:{getStackTrace:{request:{resourceId:Arg(0)},response:RetVal("json"),},},});exports.stackTracesSpec=stackTracesSpec;

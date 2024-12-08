@@ -1,0 +1,12 @@
+"use strict";
+if(typeof Components!="undefined"){
+this.exports={};}else if(typeof module=="undefined"||typeof exports=="undefined"){throw new Error("Please load this module using require()");}
+var EXPORTED_SYMBOLS=["basename","dirname","join","normalize","split","toFileURI","fromFileURI",];var basename=function(path){return path.slice(path.lastIndexOf("/")+1);};exports.basename=basename;var dirname=function(path){let index=path.lastIndexOf("/");if(index==-1){return".";}
+while(index>=0&&path[index]=="/"){--index;}
+return path.slice(0,index+1);};exports.dirname=dirname;var join=function(...path){ let paths=[];for(let subpath of path){if(subpath==null){throw new TypeError("invalid path component");}
+if(!subpath.length){continue;}else if(subpath[0]=="/"){paths=[subpath];}else{paths.push(subpath);}}
+return paths.join("/");};exports.join=join;var normalize=function(path){let stack=[];let absolute;if(path.length>=0&&path[0]=="/"){absolute=true;}else{absolute=false;}
+path.split("/").forEach(function(v){switch(v){case"":case".": break;case"..":if(!stack.length){if(absolute){throw new Error("Path is ill-formed: attempting to go past root");}else{stack.push("..");}}else if(stack[stack.length-1]==".."){stack.push("..");}else{stack.pop();}
+break;default:stack.push(v);}});let string=stack.join("/");return absolute?"/"+string:string;};exports.normalize=normalize;var split=function(path){return{absolute:path.length&&path[0]=="/",components:path.split("/"),};};exports.split=split;var toFileURIExtraEncodings={";":"%3b","?":"%3F","#":"%23"};var toFileURI=function toFileURI(path){ let dontNeedEscaping={"%5B":"[","%5D":"]"};let uri=encodeURI(this.normalize(path)).replace(/%(5B|5D)/gi,match=>dontNeedEscaping[match]);
+ let prefix="file://";uri=prefix+uri.replace(/[;?#]/g,match=>toFileURIExtraEncodings[match]);return uri;};exports.toFileURI=toFileURI;var fromFileURI=function fromFileURI(uri){let url=new URL(uri);if(url.protocol!="file:"){throw new Error("fromFileURI expects a file URI");}
+let path=this.normalize(decodeURIComponent(url.pathname));return path;};exports.fromFileURI=fromFileURI;if(typeof Components!="undefined"){this.EXPORTED_SYMBOLS=EXPORTED_SYMBOLS;for(let symbol of EXPORTED_SYMBOLS){this[symbol]=exports[symbol];}}

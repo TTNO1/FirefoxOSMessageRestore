@@ -1,0 +1,1 @@
+"use strict";exports.extend=function(prototype,properties){return Object.create(prototype,Object.getOwnPropertyDescriptors(properties));};

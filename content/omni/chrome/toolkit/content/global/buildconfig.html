@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src chrome:; object-src 'none'" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width; user-scalable=false;">
+  <title>Build Configuration</title>
+  <link rel="stylesheet" href="chrome://global/skin/about.css" type="text/css">
+  <link rel="stylesheet" href="chrome://global/content/buildconfig.css" type="text/css">
+</head>
+<body class="aboutPageWideContainer">
+<h1>Build Configuration</h1>
+<h2>Build platform</h2>
+<table>
+  <tbody>
+    <tr>
+      <th>target</th>
+    </tr>
+    <tr>
+      <td>arm-unknown-linux-androideabi</td>
+    </tr>
+  </tbody>
+</table>
+<h2>Build tools</h2>
+<table>
+  <tbody>
+    <tr>
+      <th>Compiler</th>
+      <th>Version</th>
+      <th>Compiler flags</th>
+    </tr>
+    <tr>
+      <td>/home/serveradmin/.mozbuild/sccache/sccache /home/serveradmin/.mozbuild/clang/bin/clang -std=gnu99 --target=arm-linux-androideabi</td>
+      <td>9.0.1</td>
+      <td>-mno-unaligned-access -fno-short-enums -fno-exceptions -Wno-nullability-completeness -march=armv7-a -mthumb -mfpu=neon -mfloat-abi=softfp -fno-strict-aliasing -ffunction-sections -fdata-sections -fno-math-errno -pipe</td>
+    </tr>
+    <tr>
+      <td>/home/serveradmin/.mozbuild/sccache/sccache /home/serveradmin/.mozbuild/clang/bin/clang++ -std=gnu++17 --target=arm-linux-androideabi</td>
+      <td>9.0.1</td>
+      <td>-Qunused-arguments -isystem /home/serveradmin/.mozbuild/android-ndk-r20b-canary/sysroot/usr/include/arm-linux-androideabi -isystem /home/serveradmin/.mozbuild/android-ndk-r20b-canary/sysroot/usr/include -gcc-toolchain /home/serveradmin/.mozbuild/android-ndk-r20b-canary/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64 -D__ANDROID_API__=29 -DANDROID -DTARGET_OS_GONK -DJE_FORCE_SYNC_COMPARE_AND_SWAP_4=1 -D_USING_LIBCXX -DGR_GL_USE_NEW_SHADER_SOURCE_SIGNATURE=1 -isystem /home/serveradmin/.mozbuild/android-ndk-r20b-canary/platforms/android-29/arch-arm/usr/include -isystem /work/jenkinsSlave/workspace/WND_OM_Release_Build/out/target/product/WND/obj/objdir-gecko/b2g-sysroot/include -isystem /work/jenkinsSlave/workspace/WND_OM_Release_Build/out/target/product/WND/obj/objdir-gecko/b2g-sysroot/include/camera -I/work/jenkinsSlave/workspace/WND_OM_Release_Build/external/libtouchpal -Qunused-arguments -Wall -Wbitfield-enum-conversion -Wempty-body -Wignored-qualifiers -Woverloaded-virtual -Wpointer-arith -Wshadow-field-in-constructor-modified -Wsign-compare -Wtype-limits -Wunreachable-code -Wunreachable-code-return -Wwrite-strings -Wno-invalid-offsetof -Wclass-varargs -Wempty-init-stmt -Wfloat-overflow-conversion -Wfloat-zero-conversion -Wloop-analysis -Wc++2a-compat -Wcomma -Wimplicit-fallthrough -Wunused-function -Wunused-variable -Wstring-conversion -Wtautological-overlap-compare -Wtautological-unsigned-enum-zero-compare -Wtautological-unsigned-zero-compare -Wno-error=tautological-type-limit-compare -Wno-inline-new-delete -Wno-error=deprecated-declarations -Wno-error=array-bounds -Wno-error=backend-plugin -Wno-error=return-std-move -Wno-error=atomic-alignment -Wformat -Wformat-security -Wno-gnu-zero-variadic-macro-arguments -Wno-mismatched-tags -Wno-unused-private-field -Wno-macro-redefined -Wno-overloaded-virtual -Wno-format -Wno-unknown-warning-option -mno-unaligned-access -fno-sized-deallocation -fno-aligned-new -fno-short-enums -fno-exceptions -stdlib=libstdc++ -I/home/serveradmin/.mozbuild/android-ndk-r20b-canary/sources/cxx-stl/llvm-libc++/include -I/home/serveradmin/.mozbuild/android-ndk-r20b-canary/sources/android/support/include -I/home/serveradmin/.mozbuild/android-ndk-r20b-canary/sources/cxx-stl/llvm-libc++abi/include -march=armv7-a -mthumb -mfpu=neon -mfloat-abi=softfp -fno-exceptions -fno-strict-aliasing -fno-rtti -ffunction-sections -fdata-sections -fno-exceptions -fno-math-errno -pipe -g -Oz -fomit-frame-pointer -funwind-tables</td>
+    </tr>
+    <tr>
+      <td>/home/serveradmin/.rustup/toolchains/1.44.0-x86_64-unknown-linux-gnu/bin/rustc</td>
+      <td>1.44.0</td>
+      <td></td>
+    </tr>
+  </tbody>
+</table>
+<h2>Configure options</h2>
+<p>--enable-application=b2g --target=arm-linux-androideabi MOZILLA_OFFICIAL=1 --with-app-basename=b2g --with-android-ndk=/home/serveradmin/.mozbuild/android-ndk-r20b-canary --with-android-version=29 --with-ccache=sccache CC=/home/serveradmin/.mozbuild/clang/bin/clang CXX=/home/serveradmin/.mozbuild/clang/bin/clang++ --enable-linker=lld AR=/home/serveradmin/.mozbuild/clang/bin/llvm-ar MOZ_LTO=cross --with-b2g-os-name=KAIOS --with-target-arch-name=arm_armv8-a_cortex-a53 --with-gonk=/work/jenkinsSlave/workspace/WND_OM_Release_Build/out/target/product/WND/obj/objdir-gecko/b2g-sysroot --with-gonk-gfx --target-build-variant=user --with-sandbox-gpu-node= --enable-small-chunk-size MOZ_TELEMETRY_REPORTING= --with-kaios-push-api-keyfile=/work/jenkinsSlave/workspace/WND_OM_Release_Build/device/fih/WND/push_key.txt --with-kaios-service-api-keyfile=/work/jenkinsSlave/workspace/WND_OM_Release_Build/device/fih/WND/service_key.txt --disable-printing --enable-forkserver MAKE=/usr/bin/make --enable-b2g-camera --enable-b2g-fm --enable-b2g-ims --enable-b2g-oemhook --enable-b2g-ril --enable-b2g-voice-processing --enable-touchpal --disable-updater --enable-omadm-redbend</p>
+<h2>Package name</h2>
+<p>org.mozilla.b2g</p>
+</body>
+</html>

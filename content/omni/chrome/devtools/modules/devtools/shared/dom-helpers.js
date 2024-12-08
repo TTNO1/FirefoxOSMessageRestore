@@ -1,0 +1,3 @@
+"use strict";const Services=require("Services");exports.DOMHelpers={onceDOMReady:function(win,callback,targetURL){if(!win){throw new Error("window can't be null or undefined");}
+const docShell=win.docShell;const onReady=function(event){if(event.target==win.document){docShell.chromeEventHandler.removeEventListener("DOMContentLoaded",onReady);
+Services.tm.dispatchToMainThread(callback);}};if((win.document.readyState=="complete"||win.document.readyState=="interactive")&&win.location.href==targetURL){Services.tm.dispatchToMainThread(callback);}else{docShell.chromeEventHandler.addEventListener("DOMContentLoaded",onReady);}},};

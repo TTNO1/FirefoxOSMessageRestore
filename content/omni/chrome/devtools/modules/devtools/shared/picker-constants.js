@@ -1,0 +1,1 @@
+"use strict";module.exports={ELEMENT:"ELEMENT",EYEDROPPER:"EYEDROPPER",};

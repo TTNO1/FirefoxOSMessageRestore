@@ -1,0 +1,2 @@
+"use strict";const{TYPES:{LOCAL_STORAGE},}=require("devtools/server/actors/resources/index");const ContentProcessStorage=require("devtools/server/actors/resources/utils/content-process-storage");class LocalStorageWatcher extends ContentProcessStorage{constructor(){super("localStorage",LOCAL_STORAGE);}}
+module.exports=LocalStorageWatcher;

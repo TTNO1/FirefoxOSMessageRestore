@@ -1,0 +1,6 @@
+"use strict";const{isNodeValid,}=require("devtools/server/actors/highlighters/utils/markup");const{BoxModelHighlighter,}=require("devtools/server/actors/highlighters/box-model");const MAX_HIGHLIGHTED_ELEMENTS=100;function SelectorHighlighter(highlighterEnv){this.highlighterEnv=highlighterEnv;this._highlighters=[];}
+SelectorHighlighter.prototype={show:async function(node,options={}){this.hide();if(!isNodeValid(node)||!options.selector){return false;}
+let nodes=[];try{nodes=[...node.ownerDocument.querySelectorAll(options.selector)];}catch(e){} 
+delete options.selector;const promises=[];for(let i=0;i<Math.min(nodes.length,MAX_HIGHLIGHTED_ELEMENTS);i++){promises.push(this._showHighlighter(nodes[i],options));}
+await Promise.all(promises);return true;},_showHighlighter:async function(node,options){const highlighter=new BoxModelHighlighter(this.highlighterEnv);await highlighter.isReady;highlighter.show(node,options);this._highlighters.push(highlighter);},hide:function(){for(const highlighter of this._highlighters){highlighter.destroy();}
+this._highlighters=[];},destroy:function(){this.hide();this.highlighterEnv=null;},};exports.SelectorHighlighter=SelectorHighlighter;

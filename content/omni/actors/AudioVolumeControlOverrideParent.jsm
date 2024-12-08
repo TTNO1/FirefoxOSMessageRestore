@@ -1,0 +1,3 @@
+"use strict";var EXPORTED_SYMBOLS=["AudioVolumeControlOverrideParent"];class AudioVolumeControlOverrideParent extends JSWindowActorParent{constructor(){super();}
+receiveMessage(message){let browser=this.browsingContext.top.embedderElement;if(!browser){return;}
+let win=browser.ownerGlobal;let keg=new win.KeyboardEventGenerator();keg.generate(new win.KeyboardEvent("keydown",{key:message.data}));keg.generate(new win.KeyboardEvent("keyup",{key:message.data}));}}

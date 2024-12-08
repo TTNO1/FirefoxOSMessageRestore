@@ -1,0 +1,1 @@
+"use strict";ChromeUtils.import("resource://gre/modules/ExtensionProcessScript.jsm");

@@ -1,0 +1,9 @@
+"use strict";var re=/(^([+\-]?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?(?=\D|\s|$))|^0x[\da-fA-F]+$|\d+)/g;var sre=/^\s+|\s+$/g;var snre=/\s+/g;
+var dre=/(^([\w ]+,?[\w ]+)?[\w ]+,?[\w ]+\d+:\d+(:\d+)?[\w ]?|^\d{1,4}[\/\-]\d{1,4}[\/\-]\d{1,4}|^\w+, \w+ \d+, \d{4})/;var hre=/^0x[0-9a-f]+$/i;var ore=/^0/;var b0re=/^\0/;var e0re=/\0$/;exports.naturalSortCaseSensitive=function naturalSortCaseSensitive(a,b){return naturalSort(a,b,false);};exports.naturalSortCaseInsensitive=function naturalSortCaseInsensitive(a,b){return naturalSort(a,b,true);};function naturalSort(a,b,insensitive){ const i=function(s){return((insensitive&&(""+s).toLowerCase())||""+s).replace(sre,"");};const x=i(a)||"";const y=i(b)||""; const xN=x.replace(re,"\0$1\0").replace(e0re,"").replace(b0re,"").split("\0");const yN=y.replace(re,"\0$1\0").replace(e0re,"").replace(b0re,"").split("\0"); const xD=parseInt(x.match(hre),16)||(xN.length!==1&&Date.parse(x));const yD=parseInt(y.match(hre),16)||(xD&&y.match(dre)&&Date.parse(y))||null;const normChunk=function(s,l){
+return(((!s.match(ore)||l==1)&&parseFloat(s))||s.replace(snre," ").replace(sre,"")||0);};let oFxNcL;let oFyNcL; if(yD){if(xD<yD){return-1;}else if(xD>yD){return 1;}}
+ 
+for(let cLoc=0,xNl=xN.length,yNl=yN.length,numS=Math.max(xNl,yNl);cLoc<numS;cLoc++){oFxNcL=normChunk(xN[cLoc]||"",xNl);oFyNcL=normChunk(yN[cLoc]||"",yNl);if(isNaN(oFxNcL)!==isNaN(oFyNcL)){return isNaN(oFxNcL)?1:-1;}
+ 
+if(/[^\x00-\x80]/.test(oFxNcL+oFyNcL)&&oFxNcL.localeCompare){const comp=oFxNcL.localeCompare(oFyNcL);return comp/Math.abs(comp);}
+if(oFxNcL<oFyNcL){return-1;}else if(oFxNcL>oFyNcL){return 1;}}
+return null;}

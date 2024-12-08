@@ -1,0 +1,4 @@
+"use strict";var EXPORTED_SYMBOLS=["FindBarParent"];let findbars=new WeakMap();class FindBarParent extends JSWindowActorParent{setFindbar(browser,findbar){if(findbar){findbars.set(browser,findbar);}else{findbars.delete(browser,findbar);}}
+receiveMessage(message){let browser=this.manager.browsingContext.top.embedderElement;if(!browser){return;}
+let respondToMessage=()=>{let findBar=findbars.get(browser);if(!findBar){return;}
+switch(message.name){case"Findbar:Keypress":findBar._onBrowserKeypress(message.data);break;case"Findbar:Mouseup":findBar.onMouseUp();break;}};let findPromise=browser.ownerGlobal.gFindBarPromise;if(findPromise){findPromise.then(respondToMessage);}else{respondToMessage();}}}

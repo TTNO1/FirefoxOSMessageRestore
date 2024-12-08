@@ -1,0 +1,1 @@
+"use strict";const{generateActorSpec}=require("devtools/shared/protocol");const performanceRecordingSpec=generateActorSpec({typeName:"performance-recording",});exports.performanceRecordingSpec=performanceRecordingSpec;

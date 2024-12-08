@@ -1,0 +1,1 @@
+"use strict";const{generateActorSpec}=require("devtools/shared/protocol");const pushSubscriptionSpec=generateActorSpec({typeName:"pushSubscription",});exports.pushSubscriptionSpec=pushSubscriptionSpec;

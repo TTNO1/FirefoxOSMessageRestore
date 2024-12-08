@@ -1,0 +1,2 @@
+document.addEventListener("DOMContentLoaded",()=>{let wm=document.getElementById("wm");function click_action(action,func){document.getElementById(`action-${action}`).addEventListener("click",()=>{func.call(wm);});}
+click_action("go-back",wm.go_back);click_action("go-forward",wm.go_forward);click_action("close",wm.close_frame);click_action("home",wm.go_home);},{once:true});

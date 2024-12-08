@@ -1,0 +1,66 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Home sweet home</title>
+
+    <link rel="stylesheet" href="style/index.css" type="text/css" />
+    <script>
+      function keyboardTest() {
+        window.search.focus();
+        window.setTimeout(() => {
+          window.search.blur();
+        }, 3000);
+      }
+    </script>
+  </head>
+  <body>
+    <div id="top">
+      <input id="search" placeholder="Search..." />
+      <br />
+      <button onclick="keyboardTest()">
+        Open keyboard and close it after 3s
+      </button>
+      <br/>
+      <a href="tel:6503903655">Call me maybe</a>
+    </div>
+    <div id="links">
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div class="link">
+        <a href="chrome://b2g/content/settings/index.html" target="_blank">
+          Settings
+        </a>
+      </div>
+      <div class="link">
+        <a href="https://mozilla.org/" target="_blank">Mozilla</a>
+      </div>
+      <div class="link">
+        <a href="resource://default-app-browser/index.html" target="_blank">Browser</a>
+      </div>
+      <div class="link">
+        <a href="https://duckduckgo.org/" target="_blank">DuckDuckGo</a>
+      </div>
+      <div class="link">
+        <a href="https://wikipedia.org/" target="_blank">Wikipedia</a>
+      </div>
+      <div class="link">
+        <a href="https://forecast.io/" target="_blank">Weather</a>
+      </div>
+      <div class="link">
+        <a href="https://appsco.pe/" target="_blank">Appscope</a>
+      </div>
+      <div class="link">
+        <a href="https://wieodiwedwoeiwmdoedmw.com/" target="_blank">
+          Error Page
+        </a>
+      </div>
+    </div>
+  </body>
+</html>

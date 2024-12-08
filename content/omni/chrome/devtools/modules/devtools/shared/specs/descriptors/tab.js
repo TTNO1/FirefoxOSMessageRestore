@@ -1,0 +1,1 @@
+"use strict";const{generateActorSpec,RetVal}=require("devtools/shared/protocol");const tabDescriptorSpec=generateActorSpec({typeName:"tabDescriptor",methods:{getTarget:{request:{},response:{frame:RetVal("json"),},},getFavicon:{request:{},response:{favicon:RetVal("string"),},},getWatcher:{request:{},response:RetVal("watcher"),},},});exports.tabDescriptorSpec=tabDescriptorSpec;

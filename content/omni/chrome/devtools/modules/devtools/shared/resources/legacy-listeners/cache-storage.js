@@ -1,0 +1,1 @@
+"use strict";const{ResourceWatcher,}=require("devtools/shared/resources/resource-watcher");const{makeStorageLegacyListener,}=require("devtools/shared/resources/legacy-listeners/storage-utils");module.exports=makeStorageLegacyListener("Cache",ResourceWatcher.TYPES.CACHE_STORAGE);

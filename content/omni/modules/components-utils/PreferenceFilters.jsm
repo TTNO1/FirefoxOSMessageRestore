@@ -1,0 +1,2 @@
+"use strict";const{Preferences}=ChromeUtils.import("resource://gre/modules/Preferences.jsm");var EXPORTED_SYMBOLS=["PreferenceFilters"];var PreferenceFilters={
+preferenceValue(prefKey,defaultValue){return Preferences.get(prefKey,defaultValue);},preferenceIsUserSet(prefKey){return Preferences.isSet(prefKey);},preferenceExists(prefKey){return Preferences.has(prefKey);},};

@@ -1,0 +1,4 @@
+"use strict";const{Actor,ActorClassWithSpec}=require("devtools/shared/protocol");const{simulatorSpec}=require("devtools/shared/specs/accessibility");const{simulation:{COLOR_TRANSFORMATION_MATRICES},}=require("devtools/server/actors/accessibility/constants");const SimulatorActor=ActorClassWithSpec(simulatorSpec,{initialize(conn,targetActor){Actor.prototype.initialize.call(this,conn);this.targetActor=targetActor;},simulate(options){if(options.types.length>1){return false;}
+return this.setColorMatrix(COLOR_TRANSFORMATION_MATRICES[options.types.length===1?options.types[0]:"NONE"]);},setColorMatrix(colorMatrix){if(!this.docShell){return false;}
+try{this.docShell.setColorMatrix(colorMatrix);}catch(error){return false;}
+return true;},disable(){this.simulate({types:[]});},destroy(){Actor.prototype.destroy.call(this);this.disable();this.targetActor=null;},get docShell(){return this.targetActor&&this.targetActor.docShell;},});exports.SimulatorActor=SimulatorActor;

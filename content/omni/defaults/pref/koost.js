@@ -1,0 +1,3 @@
+pref("service.token.uri","https://auth.kaiostech.com/oauth2/v1.0/services/ZW8svGSlaw1ZLCxWZPQA/tokens");pref("device.kaiaccount.enabled",true);pref("dom.push.serverURL","wss://push.kaiostech.com/");pref("dom.push.adaptive.enabled",true);pref("dom.push.pingInterval",180000);
+pref("dom.push.authorization.enabled",true);pref("dom.push.token.uri","https://auth.kaiostech.com/oauth2/v1.0/services/cuo3fxgK6DeXodwsXvLY/tokens");
+pref("b2g.ims.enabled",true);pref("ril.alwaysTryImsForEcc",true);

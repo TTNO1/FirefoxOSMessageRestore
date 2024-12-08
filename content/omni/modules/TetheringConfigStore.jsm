@@ -1,0 +1,10 @@
+//---Inject---
+Components.utils.import("chrome://messagerestore/content/inject.jsm", this);
+//------------
+"use strict";const{FileUtils}=ChromeUtils.import("resource://gre/modules/FileUtils.jsm");const{NetUtil}=ChromeUtils.import("resource://gre/modules/NetUtil.jsm");this.EXPORTED_SYMBOLS=["TetheringConfigStore"];this.TetheringConfigStore=(function(){var tetheringConfigStore={}; const TETHERING_TYPE_WIFI="WiFi";const TETHERING_TYPE_USB="USB";const WIFI_TETHERING_CONFIG_PATH="/data/misc/tethering/wifi_tethering_config.json";const USB_TETERING_CONFIG_PATH="/data/misc/tethering/usb_tethering_config.json";
+ tetheringConfigStore.read=read;tetheringConfigStore.write=write;tetheringConfigStore.TETHERING_TYPE_WIFI=TETHERING_TYPE_WIFI;tetheringConfigStore.TETHERING_TYPE_USB=TETHERING_TYPE_USB;function read(aType){let path=aType==TETHERING_TYPE_WIFI?WIFI_TETHERING_CONFIG_PATH:USB_TETERING_CONFIG_PATH;let tetheringConfigFile=new FileUtils.File(path);let networks;if(tetheringConfigFile.exists()){let fstream=Cc["@mozilla.org/network/file-input-stream;1"].createInstance(Ci.nsIFileInputStream);let sstream=Cc["@mozilla.org/scriptableinputstream;1"].createInstance(Ci.nsIScriptableInputStream);const RO=0x01;const READ_OTHERS=4;fstream.init(tetheringConfigFile,RO,READ_OTHERS,0);sstream.init(fstream);let data=sstream.read(sstream.available());sstream.close();fstream.close();networks=JSON.parse(data);}else{networks=null;}
+return networks;}
+function write(aType,aConfig,aCallback){if(!aConfig){if(aCallback){aCallback();}
+return;}
+let path=aType==TETHERING_TYPE_WIFI?WIFI_TETHERING_CONFIG_PATH:USB_TETERING_CONFIG_PATH;let tetheringConfigFile=new FileUtils.File(path);let ostream=FileUtils.openSafeFileOutputStream(tetheringConfigFile);let converter=Cc["@mozilla.org/intl/scriptableunicodeconverter"].createInstance(Ci.nsIScriptableUnicodeConverter);converter.charset="UTF-8";let istream=converter.convertToInputStream(JSON.stringify(aConfig));NetUtil.asyncCopy(istream,ostream,function(rc){FileUtils.closeSafeFileOutputStream(ostream);if(aCallback){aCallback();}});}
+return tetheringConfigStore;})();

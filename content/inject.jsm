@@ -1,0 +1,366 @@
+ChromeUtils.import = function (uri, scope) {
+	if (!uri.startsWith("resource://gre/")) {
+		console.error("Unsupported import url: " + uri);
+		throw "Unsupported ChromeUtils.import url";
+	} else {
+		let resource = "chrome://messagerestore/content/omni/" + uri.substring(15);
+		
+		switch (uri.substring(15)) {
+			case "modules/Services.jsm":
+				resource = "chrome://messagerestore/content/Services56.jsm";
+				break;
+			default:
+				break;
+		}
+		
+		if(scope === undefined) {
+			//console.debug("Calling Components.utils.import(\"" + resource + "\")");
+			return Components.utils.import(resource);
+		} else {
+			//console.debug("Calling Components.utils.import(\"" + resource + "\") with a scope");
+			return Components.utils.import(resource, scope);
+		}
+		
+	}
+}
+
+Components.utils.import("resource://gre/modules/Console.jsm", this);
+
+const CcHandler = {
+	overrides: {
+		"@mozilla.org/sidl-native/contacts;1": {
+			getService: function(interface) {
+				return {
+					findBlockedNumbers: function(filterParams, callbacks) {
+						callbacks.resolve({});
+					}
+				}
+			}
+		},
+		"@mozilla.org/mobilemessage/mobilemessageservice;1": {
+			getService: function(interface) {
+				return {
+					createSmsMessage: function(id, threadId, iccId, delivery, deliveryStatus, sender, receiver, body, messageClass, timestamp, sentTimestamp, deliveryTimestamp, read) {
+						return {
+							dummyDOMSMSMessage: true,
+							id: id,
+							threadId: threadId,
+							iccId: iccId,
+							delivery: delivery,
+							deliveryStatus: deliveryStatus,
+							sender: sender,
+							receiver: receiver,
+							body: body,
+							messageClass: messageClass,
+							timestamp: timestamp,
+							sentTimestamp: sentTimestamp,
+							deliveryTimestamp: deliveryTimestamp,
+							read: read
+						};
+					},
+					createMmsMessage: function(id, threadId, iccId, delivery, deliveryInfo, sender, receivers, timestamp, sentTimestamp, read, subject, smil, attachments, expiryDate, readReportRequested, isGroup) {
+						return {
+							dummyDOMMMSMessage: true,
+							id: id,
+							threadId: threadId,
+							iccId: iccId,
+							delivery: delivery,
+							deliveryInfo: deliveryInfo,
+							sender: sender,
+							receivers: receivers,
+							timestamp: timestamp,
+							sentTimestamp: sentTimestamp,
+							read: read,
+							subject: subject,
+							smil: smil,
+							attachments: attachments,
+							expiryDate: expiryDate,
+							readReportRequested: readReportRequested,
+							isGroup: isGroup
+						}
+					}
+				}
+			}
+		},
+		"@mozilla.org/mms/gonkmmsservice;1": {
+			getService: function(interface) {
+				return {
+					sendReadReport: function() {}
+				}
+			}
+		}
+	},
+	get: function(target, prop, receiver) {
+		if(this.overrides[prop] !== undefined) {
+			return this.overrides[prop];
+		} else {
+			return Reflect.get(...arguments);
+		}
+	}
+}
+
+const CiHandler = {
+	overrides: {
+		nsIFilterOption: {},
+		nsIRilResponseResult: {
+			"RADIO_ERROR_NOT_AVAILABLE": "nsIRilResponseResult.RADIO_ERROR_NOT_AVAILABLE",
+			"RADIO_ERROR_GENERIC_FAILURE": "nsIRilResponseResult.RADIO_ERROR_GENERIC_FAILURE",
+			"RADIO_ERROR_PASSWOR_INCORRECT": "nsIRilResponseResult.RADIO_ERROR_PASSWOR_INCORRECT",
+			"RADIO_ERROR_SIM_PIN2": "nsIRilResponseResult.RADIO_ERROR_SIM_PIN2",
+			"RADIO_ERROR_SIM_PUK2": "nsIRilResponseResult.RADIO_ERROR_SIM_PUK2",
+			"RADIO_ERROR_REQUEST_NOT_SUPPORTED": "nsIRilResponseResult.RADIO_ERROR_REQUEST_NOT_SUPPORTED",
+			"RADIO_ERROR_CANCELLED": "nsIRilResponseResult.RADIO_ERROR_CANCELLED",
+			"RADIO_ERROR_OP_NOT_ALLOWED_DURING_VOICE_CALL": "nsIRilResponseResult.RADIO_ERROR_OP_NOT_ALLOWED_DURING_VOICE_CALL",
+			"RADIO_ERROR_OP_NOT_ALLOWED_BEFORE_REG_TO_NW": "nsIRilResponseResult.RADIO_ERROR_OP_NOT_ALLOWED_BEFORE_REG_TO_NW",
+			"RADIO_ERROR_SMS_SEND_FAIL_RETRY": "nsIRilResponseResult.RADIO_ERROR_SMS_SEND_FAIL_RETRY",
+			"RADIO_ERROR_SIM_ABSENT": "nsIRilResponseResult.RADIO_ERROR_SIM_ABSENT",
+			"RADIO_ERROR_SUBSCRIPTION_NOT_AVAILABLE": "nsIRilResponseResult.RADIO_ERROR_SUBSCRIPTION_NOT_AVAILABLE",
+			"RADIO_ERROR_MODE_NOT_SUPPORTED": "nsIRilResponseResult.RADIO_ERROR_MODE_NOT_SUPPORTED",
+			"RADIO_ERROR_FDN_CHECK_FAILURE": "nsIRilResponseResult.RADIO_ERROR_FDN_CHECK_FAILURE",
+			"RADIO_ERROR_ILLEGAL_SIM_OR_ME": "nsIRilResponseResult.RADIO_ERROR_ILLEGAL_SIM_OR_ME",
+			"RADIO_ERROR_MISSING_RESOURCE": "nsIRilResponseResult.RADIO_ERROR_MISSING_RESOURCE",
+			"RADIO_ERROR_NO_SUCH_ELEMENT": "nsIRilResponseResult.RADIO_ERROR_NO_SUCH_ELEMENT",
+			"RADIO_ERROR_DIAL_MODIFIED_TO_USSD": "nsIRilResponseResult.RADIO_ERROR_DIAL_MODIFIED_TO_USSD",
+			"RADIO_ERROR_DIAL_MODIFIED_TO_SS": "nsIRilResponseResult.RADIO_ERROR_DIAL_MODIFIED_TO_SS",
+			"RADIO_ERROR_DIAL_MODIFIED_TO_DIAL": "nsIRilResponseResult.RADIO_ERROR_DIAL_MODIFIED_TO_DIAL",
+			"RADIO_ERROR_USSD_MODIFIED_TO_DIAL": "nsIRilResponseResult.RADIO_ERROR_USSD_MODIFIED_TO_DIAL",
+			"RADIO_ERROR_USSD_MODIFIED_TO_SS": "nsIRilResponseResult.RADIO_ERROR_USSD_MODIFIED_TO_SS",
+			"RADIO_ERROR_USSD_MODIFIED_TO_USSD": "nsIRilResponseResult.RADIO_ERROR_USSD_MODIFIED_TO_USSD",
+			"RADIO_ERROR_SS_MODIFIED_TO_DIAL": "nsIRilResponseResult.RADIO_ERROR_SS_MODIFIED_TO_DIAL",
+			"RADIO_ERROR_SS_MODIFIED_TO_USSD": "nsIRilResponseResult.RADIO_ERROR_SS_MODIFIED_TO_USSD",
+			"RADIO_ERROR_SUBSCRIPTION_NOT_SUPPORTED": "nsIRilResponseResult.RADIO_ERROR_SUBSCRIPTION_NOT_SUPPORTED",
+			"RADIO_ERROR_SS_MODIFIED_TO_SS": "nsIRilResponseResult.RADIO_ERROR_SS_MODIFIED_TO_SS",
+			"RADIO_ERROR_LCE_NOT_SUPPORTED": "nsIRilResponseResult.RADIO_ERROR_LCE_NOT_SUPPORTED",
+			"RADIO_ERROR_NO_MEMORY": "nsIRilResponseResult.RADIO_ERROR_NO_MEMORY",
+			"RADIO_ERROR_INTERNAL_ERR": "nsIRilResponseResult.RADIO_ERROR_INTERNAL_ERR",
+			"RADIO_ERROR_SYSTEM_ERR": "nsIRilResponseResult.RADIO_ERROR_SYSTEM_ERR",
+			"RADIO_ERROR_MODEM_ERR": "nsIRilResponseResult.RADIO_ERROR_MODEM_ERR",
+			"RADIO_ERROR_INVALID_STATE": "nsIRilResponseResult.RADIO_ERROR_INVALID_STATE",
+			"RADIO_ERROR_NO_RESOURCES": "nsIRilResponseResult.RADIO_ERROR_NO_RESOURCES",
+			"RADIO_ERROR_SIM_ERR": "nsIRilResponseResult.RADIO_ERROR_SIM_ERR",
+			"RADIO_ERROR_INVALID_ARGUMENTS": "nsIRilResponseResult.RADIO_ERROR_INVALID_ARGUMENTS",
+			"RADIO_ERROR_INVALID_SIM_STATE": "nsIRilResponseResult.RADIO_ERROR_INVALID_SIM_STATE",
+			"RADIO_ERROR_INVALID_MODEM_STATE": "nsIRilResponseResult.RADIO_ERROR_INVALID_MODEM_STATE",
+			"RADIO_ERROR_INVALID_CALL_ID": "nsIRilResponseResult.RADIO_ERROR_INVALID_CALL_ID",
+			"RADIO_ERROR_NO_SMS_TO_ACK": "nsIRilResponseResult.RADIO_ERROR_NO_SMS_TO_ACK",
+			"RADIO_ERROR_NETWORK_ERR": "nsIRilResponseResult.RADIO_ERROR_NETWORK_ERR",
+			"RADIO_ERROR_REQUEST_RATE_LIMITED": "nsIRilResponseResult.RADIO_ERROR_REQUEST_RATE_LIMITED",
+			"RADIO_ERROR_SIM_BUSY": "nsIRilResponseResult.RADIO_ERROR_SIM_BUSY",
+			"RADIO_ERROR_SIM_FULL": "nsIRilResponseResult.RADIO_ERROR_SIM_FULL",
+			"RADIO_ERROR_NETWORK_REJECT": "nsIRilResponseResult.RADIO_ERROR_NETWORK_REJECT",
+			"RADIO_ERROR_OPERATION_NOT_ALLOWED": "nsIRilResponseResult.RADIO_ERROR_OPERATION_NOT_ALLOWED",
+			"RADIO_ERROR_EMPTY_RECORD": "nsIRilResponseResult.RADIO_ERROR_EMPTY_RECORD",
+			"RADIO_ERROR_INVALID_SMS_FORMAT": "nsIRilResponseResult.RADIO_ERROR_INVALID_SMS_FORMAT",
+			"RADIO_ERROR_ENCODING_ERR": "nsIRilResponseResult.RADIO_ERROR_ENCODING_ERR",
+			"RADIO_ERROR_INVALID_SMSC_ADDRESS": "nsIRilResponseResult.RADIO_ERROR_INVALID_SMSC_ADDRESS",
+			"RADIO_ERROR_NO_SUCH_ENTRY": "nsIRilResponseResult.RADIO_ERROR_NO_SUCH_ENTRY",
+			"RADIO_ERROR_NETWORK_NOT_READY": "nsIRilResponseResult.RADIO_ERROR_NETWORK_NOT_READY",
+			"RADIO_ERROR_NOT_PROVISIONED": "nsIRilResponseResult.RADIO_ERROR_NOT_PROVISIONED",
+			"RADIO_ERROR_NO_SUBSCRIPTION": "nsIRilResponseResult.RADIO_ERROR_NO_SUBSCRIPTION",
+			"RADIO_ERROR_NO_NETWORK_FOUND": "nsIRilResponseResult.RADIO_ERROR_NO_NETWORK_FOUND",
+			"RADIO_ERROR_DEVICE_IN_USE": "nsIRilResponseResult.RADIO_ERROR_DEVICE_IN_USE",
+			"RADIO_ERROR_ABORTED": "nsIRilResponseResult.RADIO_ERROR_ABORTED",
+			"RADIO_ERROR_INVALID_RESPONSE": "nsIRilResponseResult.RADIO_ERROR_INVALID_RESPONSE",
+		},
+		nsIImsReasonInfo: {
+			"CODE_LOCAL_ILLEGAL_ARGUMENT": "nsIImsReasonInfo.CODE_LOCAL_ILLEGAL_ARGUMENT",
+			"CODE_LOCAL_ILLEGAL_STATE": "nsIImsReasonInfo.CODE_LOCAL_ILLEGAL_STATE",
+			"CODE_LOCAL_INTERNAL_ERROR": "nsIImsReasonInfo.CODE_LOCAL_INTERNAL_ERROR",
+			"CODE_LOCAL_IMS_SERVICE_DOWN": "nsIImsReasonInfo.CODE_LOCAL_IMS_SERVICE_DOWN",
+			"CODE_LOCAL_NO_PENDING_CALL": "nsIImsReasonInfo.CODE_LOCAL_NO_PENDING_CALL",
+			"CODE_LOCAL_ENDED_BY_CONFERENCE_MERGE": "nsIImsReasonInfo.CODE_LOCAL_ENDED_BY_CONFERENCE_MERGE",
+			"CODE_LOCAL_POWER_OFF": "nsIImsReasonInfo.CODE_LOCAL_POWER_OFF",
+			"CODE_LOCAL_LOW_BATTERY": "nsIImsReasonInfo.CODE_LOCAL_LOW_BATTERY",
+			"CODE_LOCAL_NETWORK_NO_SERVICE": "nsIImsReasonInfo.CODE_LOCAL_NETWORK_NO_SERVICE",
+			"CODE_LOCAL_NETWORK_NO_LTE_COVERAGE": "nsIImsReasonInfo.CODE_LOCAL_NETWORK_NO_LTE_COVERAGE",
+			"CODE_LOCAL_NETWORK_ROAMING": "nsIImsReasonInfo.CODE_LOCAL_NETWORK_ROAMING",
+			"CODE_LOCAL_NETWORK_IP_CHANGED": "nsIImsReasonInfo.CODE_LOCAL_NETWORK_IP_CHANGED",
+			"CODE_LOCAL_SERVICE_UNAVAILABLE": "nsIImsReasonInfo.CODE_LOCAL_SERVICE_UNAVAILABLE",
+			"CODE_LOCAL_NOT_REGISTERED": "nsIImsReasonInfo.CODE_LOCAL_NOT_REGISTERED",
+			"CODE_LOCAL_CALL_EXCEEDED": "nsIImsReasonInfo.CODE_LOCAL_CALL_EXCEEDED",
+			"CODE_LOCAL_CALL_BUSY": "nsIImsReasonInfo.CODE_LOCAL_CALL_BUSY",
+			"CODE_LOCAL_CALL_DECLINE": "nsIImsReasonInfo.CODE_LOCAL_CALL_DECLINE",
+			"CODE_LOCAL_CALL_VCC_ON_PROGRESSING": "nsIImsReasonInfo.CODE_LOCAL_CALL_VCC_ON_PROGRESSING",
+			"CODE_LOCAL_CALL_RESOURCE_RESERVATION_FAILED": "nsIImsReasonInfo.CODE_LOCAL_CALL_RESOURCE_RESERVATION_FAILED",
+			"CODE_LOCAL_CALL_CS_RETRY_REQUIRED": "nsIImsReasonInfo.CODE_LOCAL_CALL_CS_RETRY_REQUIRED",
+			"CODE_LOCAL_CALL_VOLTE_RETRY_REQUIRED": "nsIImsReasonInfo.CODE_LOCAL_CALL_VOLTE_RETRY_REQUIRED",
+			"CODE_LOCAL_CALL_TERMINATED": "nsIImsReasonInfo.CODE_LOCAL_CALL_TERMINATED",
+			"CODE_LOCAL_HO_NOT_FEASIBLE": "nsIImsReasonInfo.CODE_LOCAL_HO_NOT_FEASIBLE",
+			"CODE_LOCAL_IMS_NOT_SUPPORTED_ON_DEVICE": "nsIImsReasonInfo.CODE_LOCAL_IMS_NOT_SUPPORTED_ON_DEVICE",
+			"CODE_TIMEOUT_1XX_WAITING": "nsIImsReasonInfo.CODE_TIMEOUT_1XX_WAITING",
+			"CODE_TIMEOUT_NO_ANSWER": "nsIImsReasonInfo.CODE_TIMEOUT_NO_ANSWER",
+			"CODE_TIMEOUT_NO_ANSWER_CALL_UPDATE": "nsIImsReasonInfo.CODE_TIMEOUT_NO_ANSWER_CALL_UPDATE",
+			"CODE_CALL_BARRED": "nsIImsReasonInfo.CODE_CALL_BARRED",
+			"CODE_FDN_BLOCKED": "nsIImsReasonInfo.CODE_FDN_BLOCKED",
+			"CODE_IMEI_NOT_ACCEPTED": "nsIImsReasonInfo.CODE_IMEI_NOT_ACCEPTED",
+			"CODE_DIAL_MODIFIED_TO_USSD": "nsIImsReasonInfo.CODE_DIAL_MODIFIED_TO_USSD",
+			"CODE_DIAL_MODIFIED_TO_SS": "nsIImsReasonInfo.CODE_DIAL_MODIFIED_TO_SS",
+			"CODE_DIAL_MODIFIED_TO_DIAL": "nsIImsReasonInfo.CODE_DIAL_MODIFIED_TO_DIAL",
+			"CODE_DIAL_MODIFIED_TO_DIAL_VIDEO": "nsIImsReasonInfo.CODE_DIAL_MODIFIED_TO_DIAL_VIDEO",
+			"CODE_DIAL_VIDEO_MODIFIED_TO_DIAL": "nsIImsReasonInfo.CODE_DIAL_VIDEO_MODIFIED_TO_DIAL",
+			"CODE_DIAL_VIDEO_MODIFIED_TO_DIAL_VIDEO": "nsIImsReasonInfo.CODE_DIAL_VIDEO_MODIFIED_TO_DIAL_VIDEO",
+			"CODE_DIAL_VIDEO_MODIFIED_TO_SS": "nsIImsReasonInfo.CODE_DIAL_VIDEO_MODIFIED_TO_SS",
+			"CODE_DIAL_VIDEO_MODIFIED_TO_USSD": "nsIImsReasonInfo.CODE_DIAL_VIDEO_MODIFIED_TO_USSD",
+			"CODE_SIP_REDIRECTED": "nsIImsReasonInfo.CODE_SIP_REDIRECTED",
+			"CODE_SIP_BAD_REQUEST": "nsIImsReasonInfo.CODE_SIP_BAD_REQUEST",
+			"CODE_SIP_FORBIDDEN": "nsIImsReasonInfo.CODE_SIP_FORBIDDEN",
+			"CODE_SIP_NOT_FOUND": "nsIImsReasonInfo.CODE_SIP_NOT_FOUND",
+			"CODE_SIP_NOT_SUPPORTED": "nsIImsReasonInfo.CODE_SIP_NOT_SUPPORTED",
+			"CODE_SIP_REQUEST_TIMEOUT": "nsIImsReasonInfo.CODE_SIP_REQUEST_TIMEOUT",
+			"CODE_SIP_TEMPRARILY_UNAVAILABLE": "nsIImsReasonInfo.CODE_SIP_TEMPRARILY_UNAVAILABLE",
+			"CODE_SIP_BAD_ADDRESS": "nsIImsReasonInfo.CODE_SIP_BAD_ADDRESS",
+			"CODE_SIP_BUSY": "nsIImsReasonInfo.CODE_SIP_BUSY",
+			"CODE_SIP_REQUEST_CANCELLED": "nsIImsReasonInfo.CODE_SIP_REQUEST_CANCELLED",
+			"CODE_SIP_NOT_ACCEPTABLE": "nsIImsReasonInfo.CODE_SIP_NOT_ACCEPTABLE",
+			"CODE_SIP_NOT_REACHABLE": "nsIImsReasonInfo.CODE_SIP_NOT_REACHABLE",
+			"CODE_SIP_CLIENT_ERROR": "nsIImsReasonInfo.CODE_SIP_CLIENT_ERROR",
+			"CODE_SIP_TRANSACTION_DOES_NOT_EXIST": "nsIImsReasonInfo.CODE_SIP_TRANSACTION_DOES_NOT_EXIST",
+			"CODE_SIP_SERVER_INTERNAL_ERROR": "nsIImsReasonInfo.CODE_SIP_SERVER_INTERNAL_ERROR",
+			"CODE_SIP_SERVICE_UNAVAILABLE": "nsIImsReasonInfo.CODE_SIP_SERVICE_UNAVAILABLE",
+			"CODE_SIP_SERVER_TIMEOUT": "nsIImsReasonInfo.CODE_SIP_SERVER_TIMEOUT",
+			"CODE_SIP_SERVER_ERROR": "nsIImsReasonInfo.CODE_SIP_SERVER_ERROR",
+			"CODE_SIP_USER_REJECTED": "nsIImsReasonInfo.CODE_SIP_USER_REJECTED",
+			"CODE_SIP_GLOBAL_ERROR": "nsIImsReasonInfo.CODE_SIP_GLOBAL_ERROR",
+			"CODE_EMERGENCY_TEMP_FAILURE": "nsIImsReasonInfo.CODE_EMERGENCY_TEMP_FAILURE",
+			"CODE_EMERGENCY_PERM_FAILURE": "nsIImsReasonInfo.CODE_EMERGENCY_PERM_FAILURE",
+			"CODE_SIP_USER_MARKED_UNWANTED": "nsIImsReasonInfo.CODE_SIP_USER_MARKED_UNWANTED",
+			"CODE_SIP_METHOD_NOT_ALLOWED": "nsIImsReasonInfo.CODE_SIP_METHOD_NOT_ALLOWED",
+			"CODE_SIP_PROXY_AUTHENTICATION_REQUIRED": "nsIImsReasonInfo.CODE_SIP_PROXY_AUTHENTICATION_REQUIRED",
+			"CODE_SIP_REQUEST_ENTITY_TOO_LARGE": "nsIImsReasonInfo.CODE_SIP_REQUEST_ENTITY_TOO_LARGE",
+			"CODE_SIP_REQUEST_URI_TOO_LARGE": "nsIImsReasonInfo.CODE_SIP_REQUEST_URI_TOO_LARGE",
+			"CODE_SIP_EXTENSION_REQUIRED": "nsIImsReasonInfo.CODE_SIP_EXTENSION_REQUIRED",
+			"CODE_SIP_INTERVAL_TOO_BRIEF": "nsIImsReasonInfo.CODE_SIP_INTERVAL_TOO_BRIEF",
+			"CODE_SIP_CALL_OR_TRANS_DOES_NOT_EXIST": "nsIImsReasonInfo.CODE_SIP_CALL_OR_TRANS_DOES_NOT_EXIST",
+			"CODE_SIP_LOOP_DETECTED": "nsIImsReasonInfo.CODE_SIP_LOOP_DETECTED",
+			"CODE_SIP_TOO_MANY_HOPS": "nsIImsReasonInfo.CODE_SIP_TOO_MANY_HOPS",
+			"CODE_SIP_AMBIGUOUS": "nsIImsReasonInfo.CODE_SIP_AMBIGUOUS",
+			"CODE_SIP_REQUEST_PENDING": "nsIImsReasonInfo.CODE_SIP_REQUEST_PENDING",
+			"CODE_SIP_UNDECIPHERABLE": "nsIImsReasonInfo.CODE_SIP_UNDECIPHERABLE",
+			"CODE_MEDIA_INIT_FAILED": "nsIImsReasonInfo.CODE_MEDIA_INIT_FAILED",
+			"CODE_MEDIA_NO_DATA": "nsIImsReasonInfo.CODE_MEDIA_NO_DATA",
+			"CODE_MEDIA_NOT_ACCEPTABLE": "nsIImsReasonInfo.CODE_MEDIA_NOT_ACCEPTABLE",
+			"CODE_MEDIA_UNSPECIFIED": "nsIImsReasonInfo.CODE_MEDIA_UNSPECIFIED",
+			"CODE_USER_TERMINATED": "nsIImsReasonInfo.CODE_USER_TERMINATED",
+			"CODE_USER_NOANSWER": "nsIImsReasonInfo.CODE_USER_NOANSWER",
+			"CODE_USER_IGNORE": "nsIImsReasonInfo.CODE_USER_IGNORE",
+			"CODE_USER_DECLINE": "nsIImsReasonInfo.CODE_USER_DECLINE",
+			"CODE_LOW_BATTERY": "nsIImsReasonInfo.CODE_LOW_BATTERY",
+			"CODE_BLACKLISTED_CALL_ID": "nsIImsReasonInfo.CODE_BLACKLISTED_CALL_ID",
+			"CODE_USER_TERMINATED_BY_REMOTE": "nsIImsReasonInfo.CODE_USER_TERMINATED_BY_REMOTE",
+			"CODE_USER_REJECTED_SESSION_MODIFICATION": "nsIImsReasonInfo.CODE_USER_REJECTED_SESSION_MODIFICATION",
+			"CODE_USER_CANCELLED_SESSION_MODIFICATION": "nsIImsReasonInfo.CODE_USER_CANCELLED_SESSION_MODIFICATION",
+			"CODE_SESSION_MODIFICATION_FAILED": "nsIImsReasonInfo.CODE_SESSION_MODIFICATION_FAILED",
+			"CODE_UT_NOT_SUPPORTED": "nsIImsReasonInfo.CODE_UT_NOT_SUPPORTED",
+			"CODE_UT_SERVICE_UNAVAILABLE": "nsIImsReasonInfo.CODE_UT_SERVICE_UNAVAILABLE",
+			"CODE_UT_OPERATION_NOT_ALLOWED": "nsIImsReasonInfo.CODE_UT_OPERATION_NOT_ALLOWED",
+			"CODE_UT_NETWORK_ERROR": "nsIImsReasonInfo.CODE_UT_NETWORK_ERROR",
+			"CODE_UT_CB_PASSWORD_MISMATCH": "nsIImsReasonInfo.CODE_UT_CB_PASSWORD_MISMATCH",
+			"CODE_UT_SS_MODIFIED_TO_DIAL": "nsIImsReasonInfo.CODE_UT_SS_MODIFIED_TO_DIAL",
+			"CODE_UT_SS_MODIFIED_TO_USSD": "nsIImsReasonInfo.CODE_UT_SS_MODIFIED_TO_USSD",
+			"CODE_UT_SS_MODIFIED_TO_SS": "nsIImsReasonInfo.CODE_UT_SS_MODIFIED_TO_SS",
+			"CODE_UT_SS_MODIFIED_TO_DIAL_VIDEO": "nsIImsReasonInfo.CODE_UT_SS_MODIFIED_TO_DIAL_VIDEO",
+			"CODE_ECBM_NOT_SUPPORTED": "nsIImsReasonInfo.CODE_ECBM_NOT_SUPPORTED",
+			"CODE_MULTIENDPOINT_NOT_SUPPORTED": "nsIImsReasonInfo.CODE_MULTIENDPOINT_NOT_SUPPORTED",
+			"CODE_REGISTRATION_ERROR": "nsIImsReasonInfo.CODE_REGISTRATION_ERROR",
+			"CODE_ANSWERED_ELSEWHERE": "nsIImsReasonInfo.CODE_ANSWERED_ELSEWHERE",
+			"CODE_CALL_PULL_OUT_OF_SYNC": "nsIImsReasonInfo.CODE_CALL_PULL_OUT_OF_SYNC",
+			"CODE_CALL_END_CAUSE_CALL_PULL": "nsIImsReasonInfo.CODE_CALL_END_CAUSE_CALL_PULL",
+			"CODE_CALL_DROP_IWLAN_TO_LTE_UNAVAILABLE": "nsIImsReasonInfo.CODE_CALL_DROP_IWLAN_TO_LTE_UNAVAILABLE",
+			"CODE_REJECTED_ELSEWHERE": "nsIImsReasonInfo.CODE_REJECTED_ELSEWHERE",
+			"CODE_SUPP_SVC_FAILED": "nsIImsReasonInfo.CODE_SUPP_SVC_FAILED",
+			"CODE_SUPP_SVC_CANCELLED": "nsIImsReasonInfo.CODE_SUPP_SVC_CANCELLED",
+			"CODE_SUPP_SVC_REINVITE_COLLISION": "nsIImsReasonInfo.CODE_SUPP_SVC_REINVITE_COLLISION",
+			"CODE_IWLAN_DPD_FAILURE": "nsIImsReasonInfo.CODE_IWLAN_DPD_FAILURE",
+			"CODE_EPDG_TUNNEL_ESTABLISH_FAILURE": "nsIImsReasonInfo.CODE_EPDG_TUNNEL_ESTABLISH_FAILURE",
+			"CODE_EPDG_TUNNEL_REKEY_FAILURE": "nsIImsReasonInfo.CODE_EPDG_TUNNEL_REKEY_FAILURE",
+			"CODE_EPDG_TUNNEL_LOST_CONNECTION": "nsIImsReasonInfo.CODE_EPDG_TUNNEL_LOST_CONNECTION",
+			"CODE_MAXIMUM_NUMBER_OF_CALLS_REACHED": "nsIImsReasonInfo.CODE_MAXIMUM_NUMBER_OF_CALLS_REACHED",
+			"CODE_REMOTE_CALL_DECLINE": "nsIImsReasonInfo.CODE_REMOTE_CALL_DECLINE",
+			"CODE_DATA_LIMIT_REACHED": "nsIImsReasonInfo.CODE_DATA_LIMIT_REACHED",
+			"CODE_DATA_DISABLED": "nsIImsReasonInfo.CODE_DATA_DISABLED",
+			"CODE_WIFI_LOST": "nsIImsReasonInfo.CODE_WIFI_LOST",
+			"CODE_RETRY_ON_IMS_WITHOUT_RTT": "nsIImsReasonInfo.CODE_RETRY_ON_IMS_WITHOUT_RTT",
+			"CODE_IKEV2_AUTH_FAILURE": "nsIImsReasonInfo.CODE_IKEV2_AUTH_FAILURE",
+			"CODE_RADIO_OFF": "nsIImsReasonInfo.CODE_RADIO_OFF",
+			"CODE_NO_VALID_SIM": "nsIImsReasonInfo.CODE_NO_VALID_SIM",
+			"CODE_NETWORK_RESP_TIMEOUT": "nsIImsReasonInfo.CODE_NETWORK_RESP_TIMEOUT",
+			"CODE_NETWORK_REJECT": "nsIImsReasonInfo.CODE_NETWORK_REJECT",
+			"CODE_RADIO_ACCESS_FAILURE": "nsIImsReasonInfo.CODE_RADIO_ACCESS_FAILURE",
+			"CODE_RADIO_LINK_FAILURE": "nsIImsReasonInfo.CODE_RADIO_LINK_FAILURE",
+			"CODE_RADIO_LINK_LOST": "nsIImsReasonInfo.CODE_RADIO_LINK_LOST",
+			"CODE_RADIO_UPLINK_FAILURE": "nsIImsReasonInfo.CODE_RADIO_UPLINK_FAILURE",
+			"CODE_RADIO_SETUP_FAILURE": "nsIImsReasonInfo.CODE_RADIO_SETUP_FAILURE",
+			"CODE_RADIO_RELEASE_NORMAL": "nsIImsReasonInfo.CODE_RADIO_RELEASE_NORMAL",
+			"CODE_RADIO_RELEASE_ABNORMAL": "nsIImsReasonInfo.CODE_RADIO_RELEASE_ABNORMAL",
+			"CODE_ACCESS_CLASS_BLOCKED": "nsIImsReasonInfo.CODE_ACCESS_CLASS_BLOCKED",
+			"CODE_NETWORK_DETACH": "nsIImsReasonInfo.CODE_NETWORK_DETACH",
+			"CODE_SIP_ALTERNATE_EMERGENCY_CALL": "nsIImsReasonInfo.CODE_SIP_ALTERNATE_EMERGENCY_CALL",
+			"CODE_UNOBTAINABLE_NUMBER": "nsIImsReasonInfo.CODE_UNOBTAINABLE_NUMBER",
+			"CODE_NO_CSFB_IN_CS_ROAM": "nsIImsReasonInfo.CODE_NO_CSFB_IN_CS_ROAM",
+			"CODE_REJECT_UNKNOWN": "nsIImsReasonInfo.CODE_REJECT_UNKNOWN",
+			"CODE_REJECT_ONGOING_CALL_WAITING_DISABLED": "nsIImsReasonInfo.CODE_REJECT_ONGOING_CALL_WAITING_DISABLED",
+			"CODE_REJECT_CALL_ON_OTHER_SUB": "nsIImsReasonInfo.CODE_REJECT_CALL_ON_OTHER_SUB",
+			"CODE_REJECT_1X_COLLISION": "nsIImsReasonInfo.CODE_REJECT_1X_COLLISION",
+			"CODE_REJECT_SERVICE_NOT_REGISTERED": "nsIImsReasonInfo.CODE_REJECT_SERVICE_NOT_REGISTERED",
+			"CODE_REJECT_CALL_TYPE_NOT_ALLOWED": "nsIImsReasonInfo.CODE_REJECT_CALL_TYPE_NOT_ALLOWED",
+			"CODE_REJECT_ONGOING_E911_CALL": "nsIImsReasonInfo.CODE_REJECT_ONGOING_E911_CALL",
+			"CODE_REJECT_ONGOING_CALL_SETUP": "nsIImsReasonInfo.CODE_REJECT_ONGOING_CALL_SETUP",
+			"CODE_REJECT_MAX_CALL_LIMIT_REACHED": "nsIImsReasonInfo.CODE_REJECT_MAX_CALL_LIMIT_REACHED",
+			"CODE_REJECT_UNSUPPORTED_SIP_HEADERS": "nsIImsReasonInfo.CODE_REJECT_UNSUPPORTED_SIP_HEADERS",
+			"CODE_REJECT_UNSUPPORTED_SDP_HEADERS": "nsIImsReasonInfo.CODE_REJECT_UNSUPPORTED_SDP_HEADERS",
+			"CODE_REJECT_ONGOING_CALL_TRANSFER": "nsIImsReasonInfo.CODE_REJECT_ONGOING_CALL_TRANSFER",
+			"CODE_REJECT_INTERNAL_ERROR": "nsIImsReasonInfo.CODE_REJECT_INTERNAL_ERROR",
+			"CODE_REJECT_QOS_FAILURE": "nsIImsReasonInfo.CODE_REJECT_QOS_FAILURE",
+			"CODE_REJECT_ONGOING_HANDOVER": "nsIImsReasonInfo.CODE_REJECT_ONGOING_HANDOVER",
+			"CODE_REJECT_VT_TTY_NOT_ALLOWED": "nsIImsReasonInfo.CODE_REJECT_VT_TTY_NOT_ALLOWED",
+			"CODE_REJECT_ONGOING_CALL_UPGRADE": "nsIImsReasonInfo.CODE_REJECT_ONGOING_CALL_UPGRADE",
+			"CODE_REJECT_CONFERENCE_TTY_NOT_ALLOWED": "nsIImsReasonInfo.CODE_REJECT_CONFERENCE_TTY_NOT_ALLOWED",
+			"CODE_REJECT_ONGOING_CONFERENCE_CALL": "nsIImsReasonInfo.CODE_REJECT_ONGOING_CONFERENCE_CALL",
+			"CODE_REJECT_VT_AVPF_NOT_ALLOWED": "nsIImsReasonInfo.CODE_REJECT_VT_AVPF_NOT_ALLOWED",
+			"CODE_REJECT_ONGOING_ENCRYPTED_CALL": "nsIImsReasonInfo.CODE_REJECT_ONGOING_ENCRYPTED_CALL",
+			"CODE_REJECT_ONGOING_CS_CALL": "nsIImsReasonInfo.CODE_REJECT_ONGOING_CS_CALL",
+			"CODE_EMERGENCY_CALL_OVER_WFC_NOT_AVAILABLE": "nsIImsReasonInfo.CODE_EMERGENCY_CALL_OVER_WFC_NOT_AVAILABLE",
+			"CODE_WFC_SERVICE_NOT_AVAILABLE_IN_THIS_LOCATION": "nsIImsReasonInfo.CODE_WFC_SERVICE_NOT_AVAILABLE_IN_THIS_LOCATION",
+			"CODE_RETRY_ON_IMS_WITHOUT_RTT": "nsIImsReasonInfo.CODE_RETRY_ON_IMS_WITHOUT_RTT",
+		}
+	},
+	get: function(target, prop, receiver) {
+		if(this.overrides[prop] !== undefined) {
+			return this.overrides[prop];
+		} else {
+			return Reflect.get(...arguments);
+		}
+	}
+}
+
+const CrHandler = {
+	get: function(target, prop, receiver) {
+		if(prop.toLowerCase().includes("error")) {
+			console.warn("Accessed Error Property of Cr: " + prop);
+			console.trace();
+		}
+		return Reflect.get(...arguments);
+	}
+}
+
+const Cu = Components.utils;
+const Ci = new Proxy(Components.interfaces, CiHandler);
+const Cc = new Proxy(Components.classes, CcHandler);
+const Cr = new Proxy(Components.classes, CrHandler);
+
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm", this);
+ChromeUtils.generateQI = XPCOMUtils.generateQI;
+
+ChromeUtils.defineModuleGetter = function(scope, name, resource) {
+	let temp = {};
+	ChromeUtils.import(resource, temp);
+	let value = temp[name];
+	Object.defineProperty(scope, name, {
+		value,
+		writable: true,
+		configurable: true,
+		enumerable: true
+	});
+}
+
+var EXPORTED_SYMBOLS = ["ChromeUtils", "console", "Cu", "Ci", "Cc", "Cr"];

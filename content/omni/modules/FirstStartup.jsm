@@ -1,0 +1,6 @@
+//---Inject---
+Components.utils.import("chrome://messagerestore/content/inject.jsm", this);
+//------------
+var EXPORTED_SYMBOLS=["FirstStartup"];const{AppConstants}=ChromeUtils.import("resource://gre/modules/AppConstants.jsm");const{Services}=ChromeUtils.import("resource://gre/modules/Services.jsm");const{XPCOMUtils}=ChromeUtils.import("resource://gre/modules/XPCOMUtils.jsm");XPCOMUtils.defineLazyModuleGetters(this,{Normandy:"resource://normandy/Normandy.jsm",});const PREF_TIMEOUT="first-startup.timeout";const PROBE_NAME="firstStartup";var FirstStartup={NOT_STARTED:0,IN_PROGRESS:1,TIMED_OUT:2,SUCCESS:3,UNSUPPORTED:4,_state:0,init(){this._state=this.IN_PROGRESS;const timeout=Services.prefs.getIntPref(PREF_TIMEOUT,30000); let startingTime=Date.now();if(AppConstants.MOZ_NORMANDY){let normandyInitialized=false;Normandy.init({runAsync:false}).then(()=>(normandyInitialized=true));this.elapsed=0;Services.tm.spinEventLoopUntil(()=>{this.elapsed=Date.now()-startingTime;if(this.elapsed>=timeout){this._state=this.TIMED_OUT;return true;}else if(normandyInitialized){this._state=this.SUCCESS;return true;}
+return false;});}else{this._state=this.UNSUPPORTED;}
+Services.telemetry.scalarSet(`${PROBE_NAME}.statusCode`,this._state);Services.telemetry.scalarSet(`${PROBE_NAME}.elapsed`,this.elapsed);},get state(){return this._state;},};

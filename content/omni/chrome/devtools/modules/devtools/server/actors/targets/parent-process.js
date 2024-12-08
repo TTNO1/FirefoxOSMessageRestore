@@ -1,0 +1,14 @@
+"use strict";const{Ci}=require("chrome");const Services=require("Services");const{DevToolsServer}=require("devtools/server/devtools-server");const{getChildDocShells,BrowsingContextTargetActor,browsingContextTargetPrototype,}=require("devtools/server/actors/targets/browsing-context");const makeDebugger=require("devtools/server/actors/utils/make-debugger");const{extend}=require("devtools/shared/extend");const{parentProcessTargetSpec,}=require("devtools/shared/specs/targets/parent-process");const Targets=require("devtools/server/actors/targets/index");const TargetActorMixin=require("devtools/server/actors/targets/target-actor-mixin");const parentProcessTargetPrototype=extend({},browsingContextTargetPrototype);parentProcessTargetPrototype.initialize=function(connection,window){ if(!window){window=Services.wm.getMostRecentWindow(DevToolsServer.chromeWindowType);}
+ 
+if(!window){window=Services.wm.getMostRecentWindow(null);}
+
+if(!window){window=Services.appShell.hiddenDOMWindow;}
+BrowsingContextTargetActor.prototype.initialize.call(this,connection,window.docShell);this.makeDebugger=makeDebugger.bind(null,{findDebuggees:dbg=>dbg.findAllGlobals(),shouldAddNewGlobalAsDebuggee:()=>true,}); this.watchNewDocShells=true;};parentProcessTargetPrototype.isRootActor=true;Object.defineProperty(parentProcessTargetPrototype,"docShells",{get:function(){let docShells=[];for(const{docShell}of Services.ww.getWindowEnumerator()){docShells=docShells.concat(getChildDocShells(docShell));}
+return docShells;},});parentProcessTargetPrototype.observe=function(subject,topic,data){BrowsingContextTargetActor.prototype.observe.call(this,subject,topic,data);if(!this.attached){return;}
+subject.QueryInterface(Ci.nsIDocShell);if(topic=="chrome-webnavigation-create"){this._onDocShellCreated(subject);}else if(topic=="chrome-webnavigation-destroy"){this._onDocShellDestroy(subject);}};parentProcessTargetPrototype._attach=function(){if(this.attached){return false;}
+BrowsingContextTargetActor.prototype._attach.call(this); Services.obs.addObserver(this,"chrome-webnavigation-create");Services.obs.addObserver(this,"chrome-webnavigation-destroy");for(const{docShell}of Services.ww.getWindowEnumerator()){if(docShell==this.docShell){continue;}
+this._progressListener.watch(docShell);}
+return undefined;};parentProcessTargetPrototype._detach=function(){if(!this.attached){return false;}
+Services.obs.removeObserver(this,"chrome-webnavigation-create");Services.obs.removeObserver(this,"chrome-webnavigation-destroy");for(const{docShell}of Services.ww.getWindowEnumerator()){if(docShell==this.docShell){continue;}
+this._progressListener.unwatch(docShell);}
+return BrowsingContextTargetActor.prototype._detach.call(this);};exports.parentProcessTargetPrototype=parentProcessTargetPrototype;exports.ParentProcessTargetActor=TargetActorMixin(Targets.TYPES.FRAME,parentProcessTargetSpec,parentProcessTargetPrototype);

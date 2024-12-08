@@ -1,0 +1,9 @@
+"use strict";const Services=require("Services");const{Actor,ActorClassWithSpec}=require("devtools/shared/protocol");const{accessibilitySpec}=require("devtools/shared/specs/accessibility");loader.lazyRequireGetter(this,"AccessibleWalkerActor","devtools/server/actors/accessibility/walker",true);loader.lazyRequireGetter(this,"SimulatorActor","devtools/server/actors/accessibility/simulator",true);loader.lazyRequireGetter(this,"isWebRenderEnabled","devtools/server/actors/utils/accessibility",true);const AccessibilityActor=ActorClassWithSpec(accessibilitySpec,{initialize(conn,targetActor){Actor.prototype.initialize.call(this,conn);
+
+
+Services.obs.addObserver(this,"a11y-init-or-shutdown");this.targetActor=targetActor;},getTraits:function(){
+return{tabbingOrder:true,};},bootstrap(){return{enabled:this.enabled,};},get enabled(){return Services.appinfo.accessibilityEnabled;},observe(subject,topic,data){const enabled=data==="1";if(enabled&&this.enabled){this.emit("init");}else if(!enabled&&!this.enabled){if(this.walker){this.walker.reset();}
+this.emit("shutdown");}},getWalker(){if(!this.walker){this.walker=new AccessibleWalkerActor(this.conn,this.targetActor);this.manage(this.walker);}
+return this.walker;},getSimulator(){ if(!isWebRenderEnabled(this.targetActor.window)){return null;}
+if(!this.simulator){this.simulator=new SimulatorActor(this.conn,this.targetActor);this.manage(this.simulator);}
+return this.simulator;},async destroy(){Actor.prototype.destroy.call(this);Services.obs.removeObserver(this,"a11y-init-or-shutdown");this.walker=null;this.targetActor=null;},});exports.AccessibilityActor=AccessibilityActor;

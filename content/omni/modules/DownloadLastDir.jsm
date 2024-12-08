@@ -1,0 +1,19 @@
+//---Inject---
+Components.utils.import("chrome://messagerestore/content/inject.jsm", this);
+//------------
+const LAST_DIR_PREF="browser.download.lastDir";const SAVE_PER_SITE_PREF=LAST_DIR_PREF+".savePerSite";const nsIFile=Ci.nsIFile;var EXPORTED_SYMBOLS=["DownloadLastDir"];const{Services}=ChromeUtils.import("resource://gre/modules/Services.jsm");const{PrivateBrowsingUtils}=ChromeUtils.import("resource://gre/modules/PrivateBrowsingUtils.jsm");let nonPrivateLoadContext=Cu.createLoadContext();let privateLoadContext=Cu.createPrivateLoadContext();var observer={QueryInterface:ChromeUtils.generateQI(["nsIObserver","nsISupportsWeakReference",]),observe(aSubject,aTopic,aData){switch(aTopic){case"last-pb-context-exited":gDownloadLastDirFile=null;break;case"browser:purge-session-history":gDownloadLastDirFile=null;if(Services.prefs.prefHasUserValue(LAST_DIR_PREF)){Services.prefs.clearUserPref(LAST_DIR_PREF);}
+
+let cps2=Cc["@mozilla.org/content-pref/service;1"].getService(Ci.nsIContentPrefService2);cps2.removeByName(LAST_DIR_PREF,nonPrivateLoadContext);cps2.removeByName(LAST_DIR_PREF,privateLoadContext);break;}},};Services.obs.addObserver(observer,"last-pb-context-exited",true);Services.obs.addObserver(observer,"browser:purge-session-history",true);function readLastDirPref(){try{return Services.prefs.getComplexValue(LAST_DIR_PREF,nsIFile);}catch(e){return null;}}
+function isContentPrefEnabled(){try{return Services.prefs.getBoolPref(SAVE_PER_SITE_PREF);}catch(e){return true;}}
+var gDownloadLastDirFile=readLastDirPref();function DownloadLastDir(aWindow,aForcePrivate){let isPrivate=false;if(aWindow===null){isPrivate=aForcePrivate||PrivateBrowsingUtils.permanentPrivateBrowsing;}else{let loadContext=aWindow.docShell.QueryInterface(Ci.nsILoadContext);isPrivate=loadContext.usePrivateBrowsing;}
+
+
+
+this.fakeContext=isPrivate?privateLoadContext:nonPrivateLoadContext;}
+DownloadLastDir.prototype={isPrivate:function DownloadLastDir_isPrivate(){return this.fakeContext.usePrivateBrowsing;}, get file(){return this._getLastFile();},set file(val){this.setFile(null,val);},cleanupPrivateFile(){gDownloadLastDirFile=null;},_getLastFile(){if(gDownloadLastDirFile&&!gDownloadLastDirFile.exists()){gDownloadLastDirFile=null;}
+if(this.isPrivate()){if(!gDownloadLastDirFile){gDownloadLastDirFile=readLastDirPref();}
+return gDownloadLastDirFile;}
+return readLastDirPref();},getFileAsync(aURI,aCallback){let plainPrefFile=this._getLastFile();if(!aURI||!isContentPrefEnabled()){Services.tm.dispatchToMainThread(()=>aCallback(plainPrefFile));return;}
+let uri=aURI instanceof Ci.nsIURI?aURI.spec:aURI;let cps2=Cc["@mozilla.org/content-pref/service;1"].getService(Ci.nsIContentPrefService2);let result=null;cps2.getByDomainAndName(uri,LAST_DIR_PREF,this.fakeContext,{handleResult:aResult=>(result=aResult),handleCompletion(aReason){let file=plainPrefFile;if(aReason==Ci.nsIContentPrefCallback2.COMPLETE_OK&&result instanceof Ci.nsIContentPref){try{file=Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsIFile);file.initWithPath(result.value);}catch(e){file=plainPrefFile;}}
+aCallback(file);},});},setFile(aURI,aFile){if(aURI&&isContentPrefEnabled()){let uri=aURI instanceof Ci.nsIURI?aURI.spec:aURI;let cps2=Cc["@mozilla.org/content-pref/service;1"].getService(Ci.nsIContentPrefService2);if(aFile instanceof Ci.nsIFile){cps2.set(uri,LAST_DIR_PREF,aFile.path,this.fakeContext);}else{cps2.removeByDomainAndName(uri,LAST_DIR_PREF,this.fakeContext);}}
+if(this.isPrivate()){if(aFile instanceof Ci.nsIFile){gDownloadLastDirFile=aFile.clone();}else{gDownloadLastDirFile=null;}}else if(aFile instanceof Ci.nsIFile){Services.prefs.setComplexValue(LAST_DIR_PREF,nsIFile,aFile);}else if(Services.prefs.prefHasUserValue(LAST_DIR_PREF)){Services.prefs.clearUserPref(LAST_DIR_PREF);}},};

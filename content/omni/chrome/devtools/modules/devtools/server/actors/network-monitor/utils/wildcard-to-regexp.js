@@ -1,0 +1,2 @@
+"use strict";function wildcardToRegExp(s){return new RegExp(s.split("*").map(regExpEscape).join(".*"),"i");}
+exports.wildcardToRegExp=wildcardToRegExp;const regExpEscape=s=>{return s.replace(/[|\\{}()[\]^$+*?.]/g,"\\$&");};

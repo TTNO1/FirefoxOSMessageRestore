@@ -1,0 +1,1 @@
+"use strict";const{generateActorSpec}=require("devtools/shared/protocol");const networkMonitorSpec=generateActorSpec({typeName:"network-monitor",methods:{},});exports.networkMonitorSpec=networkMonitorSpec;

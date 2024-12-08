@@ -1,0 +1,12 @@
+"use strict";const{Actor,ActorClassWithSpec}=require("devtools/shared/protocol");const{performanceRecordingSpec,}=require("devtools/shared/specs/performance-recording");loader.lazyRequireGetter(this,"RecordingUtils","devtools/shared/performance/recording-utils");loader.lazyRequireGetter(this,"PerformanceRecordingCommon","devtools/shared/performance/recording-common",true);const PerformanceRecordingActor=ActorClassWithSpec(performanceRecordingSpec,Object.assign({form:function(){const form={ actor:this.actorID,configuration:this._configuration,startingBufferStatus:this._startingBufferStatus,console:this._console,label:this._label,startTime:this._startTime,localStartTime:this._localStartTime,recording:this._recording,completed:this._completed,duration:this._duration,};
+ if(this._profile&&!this._sentFinalizedData){form.finalizedData=true;form.profile=this.getProfile();form.systemHost=this.getHostSystemInfo();form.systemClient=this.getClientSystemInfo();this._sentFinalizedData=true;}
+return form;},initialize:function(conn,options,meta){Actor.prototype.initialize.call(this,conn);this._configuration={withMarkers:options.withMarkers||false,withTicks:options.withTicks||false,withMemory:options.withMemory||false,withAllocations:options.withAllocations||false,allocationsSampleProbability:options.allocationsSampleProbability||0,allocationsMaxLogLength:options.allocationsMaxLogLength||0,bufferSize:options.bufferSize||0,sampleFrequency:options.sampleFrequency||1000,};this._console=!!options.console;this._label=options.label||"";if(meta){
+
+
+ this._localStartTime=Date.now();this._startTime=meta.startTime;this._startingBufferStatus={position:meta.position,totalSize:meta.totalSize,generation:meta.generation,};this._recording=true;this._markers=[];this._frames=[];this._memory=[];this._ticks=[];this._allocations={sites:[],timestamps:[],frames:[],sizes:[],};this._systemHost=meta.systemHost||{};this._systemClient=meta.systemClient||{};}},destroy:function(){Actor.prototype.destroy.call(this);},_setState:function(state,extraData){switch(state){case"recording-started":{this._recording=true;break;}
+case"recording-stopping":{this._recording=false;break;}
+case"recording-stopped":{this._profile=extraData.profile;this._duration=extraData.duration;
+
+
+RecordingUtils.offsetSampleTimes(this._profile,this._startTime);
+this._markers=this._markers.sort((a,b)=>a.start>b.start);this._completed=true;break;}}},},PerformanceRecordingCommon));exports.PerformanceRecordingActor=PerformanceRecordingActor;

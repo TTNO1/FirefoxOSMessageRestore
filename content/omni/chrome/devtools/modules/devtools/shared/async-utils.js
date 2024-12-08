@@ -1,0 +1,2 @@
+"use strict";exports.listenOnce=function listenOnce(element,event,useCapture){return new Promise(function(resolve,reject){const onEvent=function(ev){element.removeEventListener(event,onEvent,useCapture);resolve(ev);};element.addEventListener(event,onEvent,useCapture);});};const SWALLOWED_RET=Symbol("swallowed");exports.safeAsyncMethod=function(asyncFn,shouldSwallow){return async function(...args){try{const ret=await asyncFn(...args);return ret;}catch(e){if(shouldSwallow()){console.warn("Async method failed in safeAsyncMethod",e);return SWALLOWED_RET;}
+throw e;}};};

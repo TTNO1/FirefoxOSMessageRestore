@@ -1,0 +1,5 @@
+"use strict";var gCert;function onLoad(){gCert=window.arguments[0].QueryInterface(Ci.nsIX509Cert);document.addEventListener("dialogaccept",onDialogAccept);document.addEventListener("dialogcancel",onDialogCancel);let bundle=document.getElementById("pippki_bundle");let caName=gCert.commonName;if(caName.length==0){caName=bundle.getString("unnamedCA");}
+setText("trustHeader",bundle.getFormattedString("newCAMessage1",[caName]));}
+function viewCert(){viewCertHelper(window,gCert,"window");}
+function onDialogAccept(){let checkSSL=document.getElementById("trustSSL");let checkEmail=document.getElementById("trustEmail");let retVals=window.arguments[1].QueryInterface(Ci.nsIWritablePropertyBag2);retVals.setPropertyAsBool("importConfirmed",true);retVals.setPropertyAsBool("trustForSSL",checkSSL.checked);retVals.setPropertyAsBool("trustForEmail",checkEmail.checked);}
+function onDialogCancel(){let retVals=window.arguments[1].QueryInterface(Ci.nsIWritablePropertyBag2);retVals.setPropertyAsBool("importConfirmed",false);}

@@ -1,0 +1,5 @@
+content   messagerestore              content/
+skin      messagerestore  classic/1.0 skin/
+locale    messagerestore  en-US       locale/
+
+overlay chrome://browser/content/browser.xul  chrome://messagerestore/content/overlay.xul

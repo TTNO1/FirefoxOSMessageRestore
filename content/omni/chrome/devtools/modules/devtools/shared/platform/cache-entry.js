@@ -1,0 +1,9 @@
+"use strict";const Services=require("Services");const{Ci}=require("chrome");loader.lazyRequireGetter(this,"NetworkHelper","devtools/shared/webconsole/network-helper");exports.CacheEntry={isCacheSessionInitialized:false,cacheSession:null,initializeCacheSession:function(request){try{const cacheService=Services.cache2;if(cacheService){let loadContext=NetworkHelper.getRequestLoadContext(request);if(!loadContext){loadContext=Services.loadContextInfo.default;}
+this.cacheSession=cacheService.diskCacheStorage(loadContext,false);this.isCacheSessionInitialized=true;}}catch(e){this.isCacheSessionInitialized=false;}},parseCacheDescriptor:function(descriptor){const descriptorObj={};try{if(descriptor.storageDataSize){descriptorObj.dataSize=descriptor.storageDataSize;}}catch(e){}
+if(descriptor.expirationTime){descriptorObj.expires=descriptor.expirationTime;}
+if(descriptor.fetchCount){descriptorObj.fetchCount=descriptor.fetchCount;}
+if(descriptor.lastFetched){descriptorObj.lastFetched=descriptor.lastFetched;}
+if(descriptor.lastModified){descriptorObj.lastModified=descriptor.lastModified;}
+if(descriptor.deviceID){descriptorObj.device=descriptor.deviceID;}
+return descriptorObj;},getCacheEntry:function(request,onCacheDescriptorAvailable){if(!this.isCacheSessionInitialized){this.initializeCacheSession(request);}
+if(this.cacheSession){const uri=NetworkHelper.nsIURL(request.URI.spec);this.cacheSession.asyncOpenURI(uri,"",Ci.nsICacheStorage.OPEN_SECRETLY,{onCacheEntryCheck:(entry,appcache)=>{return Ci.nsICacheEntryOpenCallback.ENTRY_WANTED;},onCacheEntryAvailable:(descriptor,isnew,appcache,status)=>{if(descriptor){const descriptorObj=this.parseCacheDescriptor(descriptor);onCacheDescriptorAvailable(descriptorObj);}else{onCacheDescriptorAvailable(null);}},});}else{onCacheDescriptorAvailable(null);}},};

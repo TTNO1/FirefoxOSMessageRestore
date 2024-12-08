@@ -1,0 +1,2 @@
+"use strict";var EXPORTED_SYMBOLS=["AudioPlaybackChild"];class AudioPlaybackChild extends JSWindowActorChild{observe(subject,topic,data){if(topic==="audio-playback"){let name="AudioPlayback:";if(data==="activeMediaBlockStart"){name+="ActiveMediaBlockStart";}else if(data==="activeMediaBlockStop"){name+="ActiveMediaBlockStop";}else{name+=data==="active"?"Start":"Stop";}
+this.sendAsyncMessage(name);}}}

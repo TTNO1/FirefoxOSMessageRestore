@@ -1,0 +1,3 @@
+"use strict";const{Services}=ChromeUtils.import("resource://gre/modules/Services.jsm");function onInit(message){ if(Services.appinfo.processType==Services.appinfo.PROCESS_TYPE_CONTENT){const{initContentProcessTarget}=ChromeUtils.import("resource://devtools/server/startup/content-process.jsm");initContentProcessTarget(message);}}
+function onClose(){removeMessageListener("debug:init-content-server",onInit);removeMessageListener("debug:close-content-server",onClose);}
+addMessageListener("debug:init-content-server",onInit);addMessageListener("debug:close-content-server",onClose);

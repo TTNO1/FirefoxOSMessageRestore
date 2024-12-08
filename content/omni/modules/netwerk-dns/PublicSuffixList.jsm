@@ -1,0 +1,8 @@
+"use strict";const{RemoteSettings}=ChromeUtils.import("resource://services-settings/remote-settings.js");const{Services}=ChromeUtils.import("resource://gre/modules/Services.jsm");const FileUtils=ChromeUtils.import("resource://gre/modules/FileUtils.jsm").FileUtils;const EXPORTED_SYMBOLS=["PublicSuffixList"];const RECORD_ID="tld-dafsa";const SIGNAL="public-suffix-list-updated";const PublicSuffixList={CLIENT:RemoteSettings("public-suffix-list"),init(){if(this._initialized){return;}
+this._initialized=true;this.CLIENT.on("sync",this.onUpdate.bind(this));this.CLIENT.get({syncIfEmpty:false,filters:{id:RECORD_ID}}).then(async records=>{if(records.length==1){const fileURI=await this.CLIENT.attachments.download(records[0]);this.notifyUpdate(fileURI);}}).catch(err=>console.error(err));},getFilePath(fileURI){const uri=Services.io.newURI(fileURI);const file=uri.QueryInterface(Ci.nsIFileURL).file;return file.path;},notifyUpdate(fileURI){if(!Services.prefs.getBoolPref("network.psl.onUpdate_notify",false)){
+ return;}
+const filePath=this.getFilePath(fileURI);const nsifile=new FileUtils.File(filePath);Services.obs.notifyObservers(nsifile, SIGNAL, filePath
+);},async onUpdate({data:{created,updated,deleted}}){if(deleted.length==1){await this.CLIENT.attachments.delete(deleted[0]);} 
+const changed=created.concat(updated.map(u=>u.new));if(changed.length!=1){console.warn("Unsupported sync event for Public Suffix List");return;}
+let fileURI;try{fileURI=await this.CLIENT.attachments.download(changed[0]);}catch(err){Cu.reportError(err);return;}
+this.notifyUpdate(fileURI);},};

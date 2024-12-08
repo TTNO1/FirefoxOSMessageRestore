@@ -1,0 +1,1 @@
+"use strict";const{RetVal,generateActorSpec}=require("devtools/shared/protocol");const deviceSpec=generateActorSpec({typeName:"device",methods:{getDescription:{request:{},response:{value:RetVal("json")}},screenshotToDataURL:{request:{},response:{value:RetVal("longstring")},},},});exports.deviceSpec=deviceSpec;

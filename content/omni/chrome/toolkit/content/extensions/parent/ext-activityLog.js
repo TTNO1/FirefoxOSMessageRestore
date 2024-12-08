@@ -1,0 +1,3 @@
+"use strict";ChromeUtils.defineModuleGetter(this,"ExtensionCommon","resource://gre/modules/ExtensionCommon.jsm");ChromeUtils.defineModuleGetter(this,"ExtensionActivityLog","resource://gre/modules/ExtensionActivityLog.jsm");this.activityLog=class extends ExtensionAPI{getAPI(context){return{activityLog:{onExtensionActivity:new ExtensionCommon.EventManager({context,name:"activityLog.onExtensionActivity",register:(fire,id)=>{if(id===context.extension.id){throw new ExtensionUtils.ExtensionError("Extension cannot monitor itself.");}
+function handler(details){fire.async(details);}
+ExtensionActivityLog.addListener(id,handler);return()=>{ExtensionActivityLog.removeListener(id,handler);};},}).api(),},};}};

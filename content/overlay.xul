@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+
+<?xml-stylesheet type="text/css" href="chrome://global/skin/" ?>
+<?xml-stylesheet type="text/css" href="chrome://messagerestore/skin/overlay.css" ?>
+
+<!DOCTYPE overlay SYSTEM "chrome://messagerestore/locale/browserOverlay.dtd">
+
+<overlay id="messagerestore-browser-overlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+
+  <script type="application/x-javascript" src="chrome://messagerestore/content/overlay.js"/>
+
+  <stringbundleset id="stringbundleset">
+    <stringbundle id="messagerestore-string-bundle"
+      src="chrome://messagerestore/locale/browserOverlay.properties"/>
+  </stringbundleset>
+
+	<hbox id="nav-bar-customization-target">
+		<toolbarbutton id="messagerestore-toolbarbutton" insertafter="customizableui-special-spring2"
+		 class="toolbarbutton-1 chromeclass-toolbar-additional badged-button" oncommand="onPressMessageRestoreToolbarIcon();">
+			<image src="chrome://messagerestore/content/icon.png" label="Message Restore" class="toolbarbutton-icon"/>
+		</toolbarbutton>
+	</hbox>
+
+  <!--<menubar id="main-menubar">
+    <menu id="messagerestore-hello-menu" label="&messagerestore.hello.label;"
+      accesskey="&messagerestore.helloMenu.accesskey;" insertafter="helpMenu">
+      <menupopup>
+        <menuitem id="messagerestore-hello-menu-item"
+          label="&messagerestore.hello.label;"
+          accesskey="&messagerestore.helloItem.accesskey;"
+          oncommand="XULSchoolChrome.BrowserOverlay.sayHello(event);"/>
+      </menupopup>
+    </menu>
+  </menubar>
+
+  <vbox id="appmenuSecondaryPane">
+    <menu id="messagerestore-hello-menu-2" label="&messagerestore.hello.label;"
+      accesskey="&messagerestore.helloMenu.accesskey;"
+      insertafter="appmenu_addons">
+      <menupopup>
+        <menuitem id="messagerestore-hello-menu-item-2"
+          label="&messagerestore.hello.label;"
+          accesskey="&messagerestore.helloItem.accesskey;"
+          oncommand="XULSchoolChrome.BrowserOverlay.sayHello(event);" />
+      </menupopup>
+    </menu>
+  </vbox>-->
+</overlay>

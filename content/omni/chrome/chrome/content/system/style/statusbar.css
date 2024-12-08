@@ -1,0 +1,43 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/* <gaia-statusbar> styling */
+
+:host > div {
+  display: grid;
+  grid-template-columns: 1fr min-content;
+  align-items: center;
+  font-size: 1rem;
+  color: beige;
+}
+
+.left {
+  padding-left: 0.5em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: smaller;
+}
+
+.right {
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+  display: flex;
+  align-items: center;
+  border-left: 2px solid lightgray;
+  font-size: smaller;
+  font-family: monospace;
+}
+
+.clock {
+  text-align: end;
+}
+
+.battery-percent {
+  margin-right: 0.25em;
+}
+
+.insecure {
+  color: orange;
+}

@@ -1,0 +1,2 @@
+"use strict";loader.lazyRequireGetter(this,"getAdHocFrontOrPrimitiveGrip","devtools/client/fronts/object",true);module.exports=function({resource,targetFront}){if(Array.isArray(resource.message.arguments)){resource.message.arguments=resource.message.arguments.map(arg=>getAdHocFrontOrPrimitiveGrip(arg,targetFront));}
+return resource;};

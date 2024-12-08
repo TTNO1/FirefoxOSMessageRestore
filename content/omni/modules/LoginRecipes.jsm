@@ -1,0 +1,30 @@
+//---Inject---
+Components.utils.import("chrome://messagerestore/content/inject.jsm", this);
+//------------
+"use strict";const EXPORTED_SYMBOLS=["LoginRecipesContent","LoginRecipesParent"];const REQUIRED_KEYS=["hosts"];const OPTIONAL_KEYS=["description","notPasswordSelector","notUsernameSelector","passwordSelector","pathRegex","usernameSelector","schema","id","last_modified",];const SUPPORTED_KEYS=REQUIRED_KEYS.concat(OPTIONAL_KEYS);const{NetUtil}=ChromeUtils.import("resource://gre/modules/NetUtil.jsm");const{Services}=ChromeUtils.import("resource://gre/modules/Services.jsm");const{XPCOMUtils}=ChromeUtils.import("resource://gre/modules/XPCOMUtils.jsm");XPCOMUtils.defineLazyGlobalGetters(this,["URL","fetch"]);ChromeUtils.defineModuleGetter(this,"LoginHelper","resource://gre/modules/LoginHelper.jsm");XPCOMUtils.defineLazyGetter(this,"log",()=>LoginHelper.createLogger("LoginRecipes"));XPCOMUtils.defineLazyModuleGetters(this,{RemoteSettings:"resource://services-settings/remote-settings.js",});function LoginRecipesParent(aOptions={defaults:null}){if(Services.appinfo.processType!=Ci.nsIXULRuntime.PROCESS_TYPE_DEFAULT){throw new Error("LoginRecipesParent should only be used from the main process");}
+this._defaults=aOptions.defaults;this.reset();}
+LoginRecipesParent.prototype={initializationPromise:null,_defaults:null,_recipesByHost:null,_rsClient:null,load(aRecipes){let recipeErrors=0;for(let rawRecipe of aRecipes.siteRecipes){try{rawRecipe.pathRegex=rawRecipe.pathRegex?new RegExp(rawRecipe.pathRegex):undefined;this.add(rawRecipe);}catch(ex){recipeErrors++;log.error("Error loading recipe",rawRecipe,ex);}}
+if(recipeErrors){return Promise.reject(`There were ${recipeErrors} recipe error(s)`);}
+return Promise.resolve();},reset(){log.debug("Resetting recipes with defaults:",this._defaults);this._recipesByHost=new Map();if(this._defaults){let initPromise;if(LoginHelper.remoteRecipesEnabled){if(!this._rsClient){this._rsClient=RemoteSettings(LoginHelper.remoteRecipesCollection); this._rsClient.on("sync",event=>this.onRemoteSettingsSync(event));}
+initPromise=this._rsClient.get();}else if(this._defaults.startsWith("resource://")){initPromise=fetch(this._defaults).then(resp=>resp.json()).then(({data})=>data);}else{log.error("Invalid recipe path found, setting empty recipes list!");initPromise=new Promise(()=>[]);}
+this.initializationPromise=initPromise.then(async siteRecipes=>{Services.ppmm.broadcastAsyncMessage("clearRecipeCache");await this.load({siteRecipes});return this;});}else{this.initializationPromise=Promise.resolve(this);}},add(recipe){log.debug("Adding recipe:",recipe);let recipeKeys=Object.keys(recipe);let unknownKeys=recipeKeys.filter(key=>!SUPPORTED_KEYS.includes(key));if(unknownKeys.length){throw new Error("The following recipe keys aren't supported: "+unknownKeys.join(", "));}
+let missingRequiredKeys=REQUIRED_KEYS.filter(key=>!recipeKeys.includes(key));if(missingRequiredKeys.length){throw new Error("The following required recipe keys are missing: "+
+missingRequiredKeys.join(", "));}
+if(!Array.isArray(recipe.hosts)){throw new Error("'hosts' must be a array");}
+if(!recipe.hosts.length){throw new Error("'hosts' must be a non-empty array");}
+if(recipe.pathRegex&&recipe.pathRegex.constructor.name!="RegExp"){throw new Error("'pathRegex' must be a regular expression");}
+const OPTIONAL_STRING_PROPS=["description","passwordSelector","usernameSelector",];for(let prop of OPTIONAL_STRING_PROPS){if(recipe[prop]&&typeof recipe[prop]!="string"){throw new Error(`'${prop}' must be a string`);}} 
+for(let host of recipe.hosts){if(!this._recipesByHost.has(host)){this._recipesByHost.set(host,new Set());}
+this._recipesByHost.get(host).add(recipe);}},getRecipesForHost(aHost){let hostRecipes=this._recipesByHost.get(aHost);if(!hostRecipes){return new Set();}
+return hostRecipes;},onRemoteSettingsSync(aEvent){this._recipesByHost=new Map();let{data:{current},}=aEvent;let recipes={siteRecipes:current,};Services.ppmm.broadcastAsyncMessage("clearRecipeCache");this.load(recipes);},};this.LoginRecipesContent={_recipeCache:new WeakMap(),_clearRecipeCache(){log.debug("_clearRecipeCache");this._recipeCache=new WeakMap();},cacheRecipes(aHost,win,recipes){log.debug("cacheRecipes: for:",aHost);let recipeMap=this._recipeCache.get(win);if(!recipeMap){recipeMap=new Map();this._recipeCache.set(win,recipeMap);}
+recipeMap.set(aHost,recipes);},getRecipes(aActor,aHost,win){let recipes;let recipeMap=this._recipeCache.get(win);if(recipeMap){recipes=recipeMap.get(aHost);if(recipes){return recipes;}}
+log.warn("getRecipes: falling back to a synchronous message for:",aHost);recipes=Services.cpmm.sendSyncMessage("PasswordManager:findRecipes",{formOrigin:aHost,})[0];this.cacheRecipes(aHost,win,recipes);return recipes;},_filterRecipesForForm(aRecipes,aForm){let formDocURL=aForm.ownerDocument.location;let hostRecipes=aRecipes;let recipes=new Set();log.debug("_filterRecipesForForm",aRecipes);if(!hostRecipes){return recipes;}
+for(let hostRecipe of hostRecipes){if(hostRecipe.pathRegex&&!hostRecipe.pathRegex.test(formDocURL.pathname)){continue;}
+recipes.add(hostRecipe);}
+return recipes;},getFieldOverrides(aRecipes,aForm){let recipes=this._filterRecipesForForm(aRecipes,aForm);log.debug("getFieldOverrides: filtered recipes:",recipes.size,recipes);if(!recipes.size){return null;}
+let chosenRecipe=null;for(let recipe of recipes){if(!recipe.usernameSelector&&!recipe.passwordSelector&&!recipe.notUsernameSelector&&!recipe.notPasswordSelector){continue;}
+chosenRecipe=recipe;break;}
+return chosenRecipe;},queryLoginField(aParent,aSelector){if(!aSelector){return null;}
+let field=aParent.ownerDocument.querySelector(aSelector);if(!field){log.debug("Login field selector wasn't matched:",aSelector);return null;}
+if(!(field instanceof aParent.ownerDocument.defaultView.HTMLInputElement)){log.warn("Login field isn't an <input> so ignoring it:",aSelector);return null;}
+return field;},};

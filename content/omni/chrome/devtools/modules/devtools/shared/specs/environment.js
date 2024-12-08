@@ -1,0 +1,1 @@
+"use strict";const{generateActorSpec}=require("devtools/shared/protocol");const environmentSpec=generateActorSpec({typeName:"environment",methods:{},});exports.environmentSpec=environmentSpec;

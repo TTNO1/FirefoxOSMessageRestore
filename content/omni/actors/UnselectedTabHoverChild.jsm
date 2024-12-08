@@ -1,0 +1,2 @@
+"use strict";var EXPORTED_SYMBOLS=["UnselectedTabHoverChild"];const{Services}=ChromeUtils.import("resource://gre/modules/Services.jsm");class UnselectedTabHoverChild extends JSWindowActorChild{receiveMessage(message){Services.obs.notifyObservers(this.contentWindow,"unselected-tab-hover",message.data.hovered);}
+handleEvent(event){this.sendAsyncMessage("UnselectedTabHover:Toggle",{enable:event.type=="UnselectedTabHover:Enable",});}}

@@ -1,0 +1,1 @@
+"use strict";var EXPORTED_SYMBOLS=["AutoplayChild"];class AutoplayChild extends JSWindowActorChild{handleEvent(event){this.sendAsyncMessage("GloballyAutoplayBlocked",{});}}

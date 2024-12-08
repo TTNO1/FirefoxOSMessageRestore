@@ -1,0 +1,1 @@
+"use strict";const{generateActorSpec,RetVal}=require("devtools/shared/protocol");const processDescriptorSpec=generateActorSpec({typeName:"processDescriptor",methods:{getTarget:{request:{},response:{process:RetVal("json"),},},getWatcher:{request:{},response:RetVal("watcher"),},},});exports.processDescriptorSpec=processDescriptorSpec;

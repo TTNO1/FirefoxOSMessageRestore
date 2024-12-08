@@ -1,0 +1,4 @@
+"use strict";var EXPORTED_SYMBOLS=["TargetActorRegistry"];
+const browsingContextTargetActors=new Set();var TargetActorRegistry={registerTargetActor(targetActor){browsingContextTargetActors.add(targetActor);},unregisterTargetActor(targetActor){browsingContextTargetActors.delete(targetActor);},getTargetActor(browserId,connectionPrefix){return this.getTargetActors(browserId,connectionPrefix)[0]||null;},getTargetActors(browserId,connectionPrefix){const actors=[];for(const actor of browsingContextTargetActors){if(((!connectionPrefix||actor.actorID.startsWith(connectionPrefix))&&actor.browserId==browserId)||(browserId===null&&actor.typeName==="parentProcessTarget")){actors.push(actor);}}
+return actors;},getParentProcessTargetActor(){for(const actor of browsingContextTargetActors){if(actor.typeName==="parentProcessTarget"){return actor;}}
+return null;},};

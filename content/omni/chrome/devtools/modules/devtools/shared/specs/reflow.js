@@ -1,0 +1,1 @@
+"use strict";const{Arg,generateActorSpec}=require("devtools/shared/protocol");const reflowSpec=generateActorSpec({typeName:"reflow",events:{reflows:{type:"reflows",reflows:Arg(0,"array:json"),},},methods:{start:{oneway:true},stop:{oneway:true},},});exports.reflowSpec=reflowSpec;

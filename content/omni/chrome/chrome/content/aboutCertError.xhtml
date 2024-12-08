@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html [
+  <!ENTITY % htmlDTD
+    PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "DTD/xhtml1-strict.dtd">
+  %htmlDTD;
+  <!ENTITY % globalDTD
+    SYSTEM "chrome://global/locale/global.dtd">
+  %globalDTD;
+  <!ENTITY % certerrorDTD
+    SYSTEM "chrome://b2g-l10n/locale/aboutCertError.dtd">
+  %certerrorDTD;
+]>
+
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>&certerror.pagetitle;</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src chrome:; object-src 'none'" />
+    <meta name="viewport" content="width=device-width; user-scalable=false" />
+    <link rel="stylesheet" href="chrome://global/skin/netError.css" type="text/css" media="all" />
+    <!-- This page currently uses the same favicon as neterror.xhtml.
+         If the location of the favicon is changed for both pages, the
+         FAVICON_ERRORPAGE_URL symbol in toolkit/components/places/src/nsFaviconService.h
+         should be updated. If this page starts using a different favicon
+         than neterrorm nsFaviconService->SetAndLoadFaviconForPage
+         should be updated to ignore this one as well. -->
+    <link rel="icon" type="image/png" id="favicon" sizes="64x64" href="chrome://global/skin/icons/warning-64.png"/>
+  </head>
+
+  <body id="errorPage" class="certerror" dir="&locale.dir;">
+
+   <!-- Error Title -->
+   <div id="errorTitle">
+     <h1 class="errorTitleText">&certerror.longpagetitle;</h1>
+   </div>
+
+    <!-- PAGE CONTAINER (for styling purposes only) -->
+    <div id="errorPageContainer">
+
+      <!-- LONG CONTENT (the section most likely to require scrolling) -->
+      <div id="errorLongContent">
+        <div id="introContent">
+          <p id="introContentP1">&certerror.introPara1;</p>
+        </div>
+
+        <!-- The following sections can be unhidden by default by setting the
+             "browser.xul.error_pages.expert_bad_cert" pref to true -->
+        <div id="technicalContent" collapsed="true">
+          <h2 id="technicalContentHeading">&certerror.technical.heading;</h2>
+          <p id="technicalContentText"/>
+        </div>
+
+        <div id="expertContent" collapsed="true">
+          <h2 id="expertContentHeading">&certerror.expert.heading;</h2>
+          <div>
+            <p>&certerror.expert.content;</p>
+            <p>&certerror.expert.contentPara2;</p>
+            <button id="temporaryExceptionButton">&certerror.addTemporaryException.label;</button>
+            <button id="permanentExceptionButton">&certerror.addPermanentException.label;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!--
+    - Note: It is important to run the script this way, instead of using
+    - an onload handler. This is because error pages are loaded as
+    - LOAD_BACKGROUND, which means that onload handlers will not be executed.
+    -->
+    <script src="chrome://b2g/content/ErrorPage.js"></script>
+
+  </body>
+</html>

@@ -1,0 +1,1 @@
+"use strict";const{getUrlDetails,}=require("devtools/client/netmonitor/src/utils/request-utils");module.exports=function({resource}){resource.urlDetails=getUrlDetails(resource.url);resource.startedMs=Date.parse(resource.startedDateTime);return resource;};

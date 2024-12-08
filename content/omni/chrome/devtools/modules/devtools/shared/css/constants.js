@@ -1,0 +1,1 @@
+"use strict";exports.CSS_ANGLEUNIT={deg:"deg",rad:"rad",grad:"grad",turn:"turn",};exports.CSS_TYPES={color:2,gradient:4,"timing-function":10,};exports.PSEUDO_CLASSES=[":hover",":active",":focus",":focus-within",":visited",];

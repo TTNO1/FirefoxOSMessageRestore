@@ -1,0 +1,339 @@
+
+/* ===== global.css =====================================================
+  == Styles that apply everywhere.
+  ======================================================================= */
+
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/* all localizable skin settings shall live here */
+@import url("chrome://global/locale/intl.css");
+@import url("chrome://global/content/widgets.css");
+
+@import url("close-icon.css");
+
+@namespace xul url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+@namespace html url("http://www.w3.org/1999/xhtml");
+
+/* General styles */
+
+*|*.plain {
+  appearance: none;
+  margin: 0 !important;
+  border: none;
+  padding: 0;
+}
+
+html|button,
+html|input,
+html|textarea {
+  font: inherit;
+}
+
+/* Textbox context menu */
+
+.textbox-contextmenu:-moz-locale-dir(rtl) {
+  direction: rtl;
+}
+
+/* Autoscroll popup */
+
+.autoscroller {
+  border: none;
+  padding: 0;
+  background-image: url("chrome://global/skin/icons/autoscroll.svg");
+  background-size: contain;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  appearance: none;
+  -moz-window-shadow: none;
+  /* Set pointer-events: none; so that mousemove events can be handled by AutoScrollChild.jsm. */
+  pointer-events: none;
+}
+
+.autoscroller[scrolldir="NS"] {
+  background-image: url("chrome://global/skin/icons/autoscroll-vertical.svg");
+}
+
+.autoscroller[scrolldir="EW"] {
+  background-image: url("chrome://global/skin/icons/autoscroll-horizontal.svg");
+}
+
+/* Panel footers */
+
+.panel-footer {
+  background-color: var(--arrowpanel-dimmed);
+}
+
+.panel-footer > xul|button {
+  appearance: none;
+  border-top: 1px solid var(--panel-separator-color);
+  /* !important overrides :hover and :active colors from button.css: */
+  color: inherit !important;
+  min-width: 0;
+  margin: 0;
+  padding: .9em 2px;
+}
+
+.panel-footer > xul|button[disabled] {
+  color: var(--panel-disabled-color) !important;
+}
+
+.panel-footer > xul|button:-moz-focusring {
+  outline: 1px dotted;
+  outline-offset: -3px;
+}
+
+.panel-footer > xul|button:not([disabled]):hover {
+  background-color: var(--arrowpanel-dimmed);
+}
+
+.panel-footer > xul|button:not([disabled]):hover:active,
+.panel-footer > xul|button:not([disabled])[open] {
+  background-color: var(--arrowpanel-dimmed-further);
+  box-shadow: 0 1px 0 hsla(210,4%,10%,.05) inset;
+}
+
+.panel-footer > xul|button:not([disabled])[default] {
+  color: white !important;
+  background-color: #0060df;
+}
+
+.panel-footer > xul|button:not([disabled])[default]:hover {
+  background-color: #003eaa;
+}
+
+.panel-footer > xul|button:not([disabled])[default]:hover:active {
+  background-color: #002275;
+}
+
+.panel-footer > xul|button > .button-box {
+  padding: 0;
+}
+
+:root {
+  /* ::::: Variables ::::: */
+  --arrowpanel-padding: 10px;
+  --default-arrowpanel-background: Field;
+  --default-arrowpanel-color: FieldText;
+  --default-arrowpanel-border-color: ThreeDShadow;
+  --arrowpanel-background: var(--default-arrowpanel-background);
+  --arrowpanel-color: var(--default-arrowpanel-color);
+  --arrowpanel-border-color: var(--default-arrowpanel-border-color);
+  --panel-disabled-color: GrayText;
+  --panel-description-color: GrayText;
+  /* ::::: Styles ::::: */
+  background-color: -moz-Dialog;
+  color: -moz-DialogText;
+  font: message-box;
+}
+
+@media (-moz-windows-default-theme) {
+  :root {
+    --arrowpanel-border-color: hsla(210,4%,10%,.2);
+  }
+}
+
+/* ::::: Alert icons :::::*/
+
+.message-icon,
+.alert-dialog #infoIcon,
+.alert-icon,
+.error-icon,
+.question-icon {
+  width: 32px;
+  height: 32px;
+}
+
+.message-icon {
+  list-style-image: url("chrome://global/skin/icons/info.svg");
+}
+
+.alert-dialog #infoIcon,
+.alert-icon {
+  list-style-image: url("chrome://global/skin/icons/warning.svg");
+}
+
+.error-icon {
+  list-style-image: url("chrome://global/skin/icons/Error.png");
+}
+
+.question-icon {
+  list-style-image: url("chrome://global/skin/icons/help.svg");
+  -moz-context-properties: fill, fill-opacity;
+  fill: currentColor;
+  fill-opacity: 0.8;
+}
+
+/* ::::: iframe ::::: */
+
+xul|iframe {
+  border: none;
+  width: 100px;
+  height: 100px;
+  min-width: 10px;
+  min-height: 10px;
+}
+
+@supports -moz-bool-pref("layout.css.emulate-moz-box-with-flex") {
+  /* In emulation, <iframe> is block instead of inline, so reset the width/height */
+  xul|iframe {
+    width: auto;
+    height: auto;
+  }
+}
+
+xul|toolbar[mode="text"] .toolbarbutton-text {
+  padding: 0 !important;
+  margin: 3px 5px !important;
+}
+
+/* ::::: Print preview ::::: */
+
+.print-preview-navigate-button {
+  min-width: 1.9em;
+}
+
+.print-preview-navigate-button > .toolbarbutton-icon {
+  display: none;
+}
+
+#print-preview-portrait-button {
+  list-style-image: url("chrome://global/skin/icons/Print-preview.png");
+  -moz-image-region: rect(0px 16px 16px 0px);
+}
+
+#print-preview-landscape-button {
+  list-style-image: url("chrome://global/skin/icons/Print-preview.png");
+  -moz-image-region: rect(0px 32px 16px 16px);
+}
+
+#print-preview-portrait-button > .toolbarbutton-icon,
+#print-preview-landscape-button > .toolbarbutton-icon {
+  margin-inline-end: 2px;
+}
+
+html|*#print-preview-pageNumber {
+  /* 3 chars + (3px border + 1px padding) on both sides */
+  width: calc(8px + 3ch);
+  margin: 0 4px;
+}
+
+/* ::::: Miscellaneous formatting ::::: */
+
+:root[lwtheme-image]:-moz-lwtheme-darktext {
+  text-shadow: 0 -0.5px 1.5px white;
+}
+
+:root[lwtheme-image]:-moz-lwtheme-brighttext {
+  text-shadow: 1px 1px 1.5px black;
+}
+
+/* separators */
+xul|separator:not([orient="vertical"]) {
+  height: 1.5em;
+}
+xul|separator[orient="vertical"] {
+  width: 1.5em;
+}
+
+xul|separator.thin:not([orient="vertical"]) {
+  height: 0.5em;
+}
+xul|separator.thin[orient="vertical"] {
+  width: 0.5em;
+}
+
+xul|separator.groove:not([orient="vertical"]) {
+  border-top: 1px solid ThreeDShadow;
+  border-bottom: 1px solid ThreeDHighlight;
+  height: 0;
+  margin-block: 0.4em;
+}
+xul|separator.groove[orient="vertical"] {
+  border-left: 1px solid ThreeDShadow;
+  border-right: 1px solid ThreeDHighlight;
+  width: 0;
+  margin-inline: 0.4em;
+}
+
+xul|description,
+xul|label {
+  cursor: default;
+  margin-block: 1px 2px;
+  margin-inline: 6px 5px;
+}
+
+xul|description {
+  margin-bottom: 4px;
+}
+
+xul|label[disabled="true"] {
+  color: GrayText;
+}
+
+@media (-moz-windows-classic) {
+  xul|label[disabled="true"] {
+    color: ThreeDShadow;
+    text-shadow: 1px 1px ThreeDHighlight;
+  }
+}
+
+.tooltip-label {
+  margin: 0;
+}
+
+.header {
+  font-weight: bold;
+}
+
+.indent {
+  margin-inline-start: 23px;
+}
+
+.box-padded {
+  padding: 5px;
+}
+
+.text-link {
+  color: -moz-nativehyperlinktext;
+  cursor: pointer;
+}
+
+.text-link:hover {
+  text-decoration: underline;
+}
+
+.text-link:-moz-focusring {
+  outline: 1px dotted;
+}
+
+html|input {
+  margin: 2px 4px;
+}
+
+xul|popupnotificationcontent {
+  margin-top: .5em;
+}
+
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+.popup-notification-panel::part(arrowcontent) {
+  /* To keep the rounded borders of the panel, we use overflow: hidden; from the
+   * panel-no-padding class to ensure the contents are clipped to the border box.
+   * That causes us to override the "display" property so that the height of the
+   * contents is computed correctly. */
+  display: flex;
+  /* Make multiple popupnotifications stack vertically. */
+  flex-direction: column;
+}
+
+.popup-notification-panel > popupnotification:not([hidden]) {
+  /* Since the anonymous parent (::part(arrowcontent)) has display: flex, sizing
+   * computations work better with display: block; than with the XUL default
+   * display: -moz-box; */
+  display: block;
+}

@@ -1,0 +1,18 @@
+"use strict";const{CanvasFrameAnonymousContentHelper,}=require("devtools/server/actors/highlighters/utils/markup");loader.lazyGetter(this,"L10N",()=>{const{LocalizationHelper}=require("devtools/shared/l10n");const STRINGS_URI="devtools/client/locales/debugger.properties";return new LocalizationHelper(STRINGS_URI);});function PausedDebuggerOverlay(highlighterEnv,options={}){this.env=highlighterEnv;this.resume=options.resume;this.stepOver=options.stepOver;this.lastTarget=null;this.markup=new CanvasFrameAnonymousContentHelper(highlighterEnv,this._buildMarkup.bind(this));this.isReady=this.markup.initialize();}
+PausedDebuggerOverlay.prototype={ID_CLASS_PREFIX:"paused-dbg-",_buildMarkup(){const prefix=this.ID_CLASS_PREFIX;const container=this.markup.createNode({attributes:{class:"highlighter-container"},});const wrapper=this.markup.createNode({parent:container,attributes:{id:"root",class:"root",hidden:"true",overlay:"true",},prefix,});const toolbar=this.markup.createNode({parent:wrapper,attributes:{id:"toolbar",class:"toolbar",},prefix,});this.markup.createNode({nodeType:"span",parent:toolbar,attributes:{id:"reason",class:"reason",},prefix,});this.markup.createNode({parent:toolbar,attributes:{id:"divider",class:"divider",},prefix,});const stepWrapper=this.markup.createNode({parent:toolbar,attributes:{id:"step-button-wrapper",class:"step-button-wrapper",},prefix,});this.markup.createNode({nodeType:"button",parent:stepWrapper,attributes:{id:"step-button",class:"step-button",},prefix,});const resumeWrapper=this.markup.createNode({parent:toolbar,attributes:{id:"resume-button-wrapper",class:"resume-button-wrapper",},prefix,});this.markup.createNode({nodeType:"button",parent:resumeWrapper,attributes:{id:"resume-button",class:"resume-button",},prefix,});return container;},destroy(){this.hide();this.markup.destroy();this.env=null;this.lastTarget=null;},onClick(target){const{id}=target;if(!id){return;}
+if(id.includes("paused-dbg-step-button")){this.stepOver();}else if(id.includes("paused-dbg-resume-button")){this.resume();}},onMouseMove(target){ if(!target||!target.id){return;} 
+if(this.lastTarget&&this.lastTarget.id===target.id){return;}
+if(target.id.includes("step-button")||target.id.includes("resume-button")){const newTarget=target.parentNode.id.includes("wrapper")?target.parentNode:target; if(this.lastTarget&&this.lastTarget!=newTarget){this.lastTarget.classList.remove("hover");}
+newTarget.classList.add("hover");this.lastTarget=newTarget;}else if(this.lastTarget){ this.lastTarget.classList.remove("hover");}},handleEvent(e){switch(e.type){case"mousedown":this.onClick(e.target);break;case"DOMMouseScroll":
+
+
+e.preventDefault();break;case"mousemove":this.onMouseMove(e.target);break;}},getElement(id){return this.markup.getElement(this.ID_CLASS_PREFIX+id);},show(node,options={}){if(this.env.isXUL||!options.reason){return false;}
+let reason;try{reason=L10N.getStr(`whyPaused.${options.reason}`);}catch(e){
+
+return false;}
+ 
+const{pageListenerTarget}=this.env;pageListenerTarget.addEventListener("mousemove",this);const root=this.getElement("root");root.removeAttribute("hidden");root.setAttribute("overlay","true");const toolbar=this.getElement("toolbar");this.getElement("reason").setTextContent(reason);toolbar.removeAttribute("hidden");
+
+
+this.env.window.document.setSuppressedEventListener(this);return true;},hide(){if(this.env.isXUL){return;}
+const{pageListenerTarget}=this.env;pageListenerTarget.removeEventListener("mousemove",this);this.getElement("root").setAttribute("hidden","true");},};exports.PausedDebuggerOverlay=PausedDebuggerOverlay;

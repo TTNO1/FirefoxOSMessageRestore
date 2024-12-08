@@ -1,0 +1,3 @@
+"use strict";var EXPORTED_SYMBOLS=["State","CommandType"];const State=Object.freeze({INIT:0,CONNECTING:1,CONNECTED:2,CLOSING:3,CLOSED:4,});const CommandType=Object.freeze({ CONNECT:"connect",CONNECT_ACK:"connect-ack",DISCONNECT:"disconnect", 
+LAUNCH:"launch",LAUNCH_ACK:"launch-ack",TERMINATE:"terminate",TERMINATE_ACK:"terminate-ack",RECONNECT:"reconnect",RECONNECT_ACK:"reconnect-ack", 
+OFFER:"offer",ANSWER:"answer",ICE_CANDIDATE:"ice-candidate",});this.State=State;this.CommandType=CommandType;

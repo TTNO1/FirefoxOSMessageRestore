@@ -1,0 +1,4 @@
+//---Inject---
+Components.utils.import("chrome://messagerestore/content/inject.jsm", this);
+//------------
+"use strict";var EXPORTED_SYMBOLS=["PromiseUtils"];const{Services}=ChromeUtils.import("resource://gre/modules/Services.jsm");var PromiseUtils={defer(){return new Deferred();},idleDispatch(callback,timeout=0){return new Promise((resolve,reject)=>{Services.tm.idleDispatchToMainThread(()=>{try{resolve(callback());}catch(e){reject(e);}},timeout);});},};function Deferred(){this.resolve=null;this.reject=null;this.promise=new Promise((resolve,reject)=>{this.resolve=resolve;this.reject=reject;});}

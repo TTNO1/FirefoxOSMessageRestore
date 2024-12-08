@@ -1,0 +1,2 @@
+"use strict";const Services=require("Services");const PSEUDOURI="indexeddb://fx-devtools";const principaluri=Services.io.newURI(PSEUDOURI);const principal=Services.scriptSecurityManager.createContentPrincipal(principaluri,{});exports.createDevToolsIndexedDB=function(indexedDB){return Object.freeze({open(name,version){const options={};if(typeof version==="number"){options.version=version;}
+return indexedDB.openForPrincipal(principal,name,options);},deleteDatabase(name){return indexedDB.deleteForPrincipal(principal,name);},cmp:indexedDB.cmp.bind(indexedDB),});};

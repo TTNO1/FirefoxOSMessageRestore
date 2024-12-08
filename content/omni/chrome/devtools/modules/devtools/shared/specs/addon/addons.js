@@ -1,0 +1,1 @@
+"use strict";const{Arg,RetVal,generateActorSpec}=require("devtools/shared/protocol");const addonsSpec=generateActorSpec({typeName:"addons",methods:{installTemporaryAddon:{request:{addonPath:Arg(0,"string")},response:{addon:RetVal("json")},},},});exports.addonsSpec=addonsSpec;
