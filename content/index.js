@@ -69,6 +69,15 @@ XPCOMUtils.defineLazyGetter(this, "MMS", function() {
 
 function populateDatabase(xmlDoc) {
 	setStatusMsg("Populating database ...");
+	let incrementSavedMsgs = function() {
+		savedMsgCount++;
+		if (savedMsgCount % 500 == 0) {
+			setStatusMsg("Populating database " + Math.round((savedMsgCount / totalMsgCount) * 1000) / 10 + "%");
+		}
+		if (savedMsgCount == totalMsgCount) {
+			setStatusMsg("Complete!");
+		}
+	}
 	
 	let smsMsgs = Array.from(xmlDoc.getElementsByTagName("sms"));
 	let mmsMsgs = Array.from(xmlDoc.getElementsByTagName("mms"));
@@ -76,10 +85,6 @@ function populateDatabase(xmlDoc) {
 	let savedMsgCount = 0;
 	
 	smsMsgs.forEach(function(sms, index, arr) {
-		if(savedMsgCount % 500 == 0) {
-			setStatusMsg("Populating database " + Math.round((savedMsgCount/totalMsgCount)*1000)/10 + "%");
-		}
-		
 		let type = sms.getAttribute("type");
 		
 		let msgObj = {
@@ -101,11 +106,13 @@ function populateDatabase(xmlDoc) {
 					mmdbs.markMessageRead(domMsg.id, 1, false, {
 						notifyMarkMessageReadFailed: function(e) {
 							setErrorMsg("Error: " + e);
+							incrementSavedMsgs();
 						},
 						notifyMessageMarkedRead: function(val) {
 							if(!val) {
 								setErrorMsg("Error: Message with id " + domMsg.id + " not marked as read.");
 							}
+							incrementSavedMsgs();
 						}
 					});
 				}
@@ -124,6 +131,7 @@ function populateDatabase(xmlDoc) {
 							if(e != 0 && e != undefined) {
 								setErrorMsg("Error: " + e);
 							}
+							incrementSavedMsgs();
 						}
 					});
 				}
@@ -131,14 +139,9 @@ function populateDatabase(xmlDoc) {
 		} else {
 			setErrorMsg("Error, Inavlid SMS Type: " + type);
 		}
-		savedMsgCount++;
 	});
 	
 	mmsMsgs.forEach(function(mms, index, arr) {
-		if(savedMsgCount % 500 == 0) {
-			setStatusMsg("Populating database " + Math.round((savedMsgCount/totalMsgCount)*1000)/10 + "%");
-		}
-		
 		let addressNumbers = mms.getAttribute("address").split("~");
 		let receivers = [];
 		let sender = null;
@@ -237,6 +240,7 @@ function populateDatabase(xmlDoc) {
 							if(e != 0 && e != undefined) {
 								setErrorMsg("Error: " + e);
 							}
+							incrementSavedMsgs();
 						}
 					});
 				}
@@ -250,21 +254,19 @@ function populateDatabase(xmlDoc) {
 					mmdbs.markMessageRead(domMsg.id, 1, false, {
 						notifyMarkMessageReadFailed: function(e) {
 							setErrorMsg("Error: " + e);
+							incrementSavedMsgs();
 						},
 						notifyMessageMarkedRead: function(val) {
 							if(!val) {
 								setErrorMsg("Error: Message with id " + domMsg.id + " not marked as read.");
 							}
+							incrementSavedMsgs();
 						}
 					});
 				}
 			});
 		}
-		
-		savedMsgCount++;
 	});
-	
-	setStatusMsg("Complete!");
 }
 
 function phoneNumsEqual(num1, num2) {
