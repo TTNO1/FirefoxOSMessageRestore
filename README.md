@@ -14,13 +14,21 @@ For the Nokia 2780, follow the steps [here](https://git.abscue.de/affe_null/week
 
 ### Running the Extension
 Download Firefox Developer Edition from [here](https://archive.mozilla.org/pub/devedition/releases/56.0b12/) and install it. **Before you run it, turn off your internet to prevent automatic updates.** Then click the hamburger menu in the top right
+
 ![Hamburger Icon](https://raw.githubusercontent.com/TTNO1/FirefoxOSMessageRestore/refs/heads/master/readme/toolbar-hamburger.png)
+
 then click options > scroll down > firefox developer edition updates > select "Never check for updates". You can now turn your internet back on. It is important to prevent auto updates because **the extension will not work on newer versions**. Next, open a new tab and type `about:config` into the address bar and hit enter. Type `xpinstall.signatures.required` into the search box, right click the property that comes up and click "toggle" so that it is set to false. This setting allows you to install custom (unverified) extensions from a file--this is neccessary because the Firefox extension store no longer supports extensions of this type (XPCOM). Now download the `MessageRestore.xpi` file [here](https://github.com/TTNO1/FirefoxOSMessageRestore/releases/latest) and drag it into an open window of Firefox Developer Edition 56. It should ask if you want to install it (click yes) and to restart Firefox (click restart). When it reopens, you should see an icon in the top right that looks like this:
+
 ![Message Bubble Icon](https://raw.githubusercontent.com/TTNO1/FirefoxOSMessageRestore/refs/heads/master/readme/toolbar-msg-icon.png)
+
 Click the icon. A window should then popup that looks like this:
+
 ![Popup Window](https://raw.githubusercontent.com/TTNO1/FirefoxOSMessageRestore/refs/heads/master/readme/ext-popup.png)
+
 Click the "Choose File" button and select the backup xml file created by the SMS Backup & Restore Android app. Then click the "Generate Database" button and wait for it to say "Complete!" (the data will be corrupt if you do not wait for "Complete!"). 
+
 ![Popup Showing Complete Message](https://raw.githubusercontent.com/TTNO1/FirefoxOSMessageRestore/refs/heads/master/readme/ext-popup-complete.png)
+
 ### Copying Database to Phone
 Next, you need to copy the generated database files from Firefox onto your new phone. On Windows, the database files are located at `C:\Users\<username>\AppData\Roaming\Mozilla\Firefox\Profiles\<rand>.dev-edition-default-<num>\storage\permanent\chrome\idb`. On other operating systems, they will be located in a similar directory (wherever app data is stored) but I do not know exactly where. You will need to copy the `226660312ssm.sqlite` file and the `226660312ssm.files` folder. Plug your phone into your computer and boot into the hacker toolbox. Select "USB storage" and then "userdata". Browse the phone and go to the path `/b2g/mozilla/<rand>.default/storage/permanent/chrome/idb`. Copy the `226660312ssm.sqlite` file and `226660312ssm.files` folder from the phone directory to a place on your computer to serve as a backup (if something goes wrong or you need to undo the restoration, you will need to copy these backed-up files back onto the phone). Now move the `226660312ssm.sqlite` file and `226660312ssm.files` folder that you copied from Firefox Developer Edition onto the phone to replace the equivalent file and folder that are already there. Now eject the phone and reboot into Firefox/Kai OS. Your text messages should now be restored (note you will have to wait a second after opening the messages app for the cache to update). If there are any problems with the restoration, please let me know and I will try to help.
 ### Restoring from an Old Firefox/Kai OS Phone
