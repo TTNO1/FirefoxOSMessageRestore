@@ -7,11 +7,10 @@ This guide will explain how to restore text messages from an old phone onto a ne
  - Write access to UserData partition of the new phone (see below)
  - A backup XML file from an Android phone or an old Firefox/Kai phone with read access to userdata partition
 
-Note: If you have a Nokia 2780, you will have to completely wipe your phone as part of the jailbreaking process.
-
 ### Accessing UserData Partition
-You will need write access to the userdata partition on the new phone. For devices other than the Nokia 2780, check its [BananaHackers page](https://wiki.bananahackers.net/devices) for steps.
-For the Nokia 2780, follow the steps [here](https://git.abscue.de/affe_null/weeknd-toolbox/). Note that for the "building" and "booting" steps, you will need to install a few dependencies; however, there is no list of these dependencies so you will have to do some trial and error until it runs successfully. Proceed to the "Preparation" step and stop before the "Getting adb to work" step. Note that you will have to reboot into KaiOS after disabling encryption and then back into the hacking toolbox in order for the files to be populated after the reset.
+You will need write access to the userdata partition on the new phone. For devices other than the Nokia 2780, check its [BananaHackers page](https://wiki.bananahackers.net/devices) for help.
+
+For the Nokia 2780, follow the steps [here](https://git.abscue.de/affe_null/weeknd-toolbox/). You will need a Linux system for this. **Beware:** part of this process involves completely wiping the phone. Note that for the "building" and "booting" steps, you will need to install a few dependencies; however, there is no list of these dependencies so you will have to do some trial and error until it runs successfully. Proceed to the "Preparation" step and stop before the "Getting adb to work" step. Note that you will have to reboot into KaiOS after disabling encryption and then back into the hacking toolbox in order for the files to be populated after the reset.
 
 ### Running the Extension
 Download Firefox Developer Edition from [here](https://archive.mozilla.org/pub/devedition/releases/56.0b12/) and install it. **Before you run it, turn off your internet to prevent automatic updates.** Then click the hamburger menu in the top right
