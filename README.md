@@ -26,7 +26,7 @@ Click the icon. A window should then popup that looks like this:
 
 ![Popup Window](https://raw.githubusercontent.com/TTNO1/FirefoxOSMessageRestore/refs/heads/master/readme/ext-popup.png)
 
-Click the "Choose File" button and select the backup xml file created by the SMS Backup & Restore Android app. Then click the "Generate Database" button and wait for it to say "Complete!" (the data will be corrupt if you do not wait for "Complete!"). 
+Click the "Choose File" button and select the backup xml file created by the *SMS Backup & Restore* Android app. Then click the "Generate Database" button and wait for it to say "Complete!" (the data will be corrupt if you do not wait for "Complete!"). 
 
 ![Popup Showing Complete Message](https://raw.githubusercontent.com/TTNO1/FirefoxOSMessageRestore/refs/heads/master/readme/ext-popup-complete.png)
 
